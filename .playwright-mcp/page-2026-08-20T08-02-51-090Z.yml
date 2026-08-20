@@ -1,0 +1,78 @@
+- generic [ref=f3e3]:
+  - tabpanel "List" [ref=f3e4]:
+    - generic [ref=f3e5]:
+      - heading "Our Projects" [level=1] [ref=f3e7]
+      - listbox "Our projects" [ref=f3e8]:
+        - option "New Approach School, Education, Arrington, TN" [ref=f3e9] [cursor=pointer]:
+          - generic [ref=f3e10]: Education
+          - generic [ref=f3e12]:
+            - generic [ref=f3e13]: New Approach School
+            - generic [ref=f3e14]: Arrington, TN
+        - option "Cedar Row Marketplace, Retail, Franklin, TN" [selected] [ref=f3e15] [cursor=pointer]:
+          - generic [ref=f3e16]: Retail
+          - generic [ref=f3e18]:
+            - generic [ref=f3e19]: Cedar Row Marketplace
+            - generic [ref=f3e20]: Franklin, TN
+        - option "Harpeth Multifamily Flats, Multifamily, Franklin, TN" [ref=f3e21] [cursor=pointer]:
+          - generic [ref=f3e22]: Multifamily
+          - generic [ref=f3e24]:
+            - generic [ref=f3e25]: Harpeth Multifamily Flats
+            - generic [ref=f3e26]: Franklin, TN
+        - option "Nolensville Logistics Park, Industrial, Nolensville, TN" [ref=f3e27] [cursor=pointer]:
+          - generic [ref=f3e28]: Industrial
+          - generic [ref=f3e30]:
+            - generic [ref=f3e31]: Nolensville Logistics Park
+            - generic [ref=f3e32]: Nolensville, TN
+        - option "Music Row Office Tower, Office, Nashville, TN" [ref=f3e33] [cursor=pointer]:
+          - generic [ref=f3e34]: Office
+          - generic [ref=f3e36]:
+            - generic [ref=f3e37]: Music Row Office Tower
+            - generic [ref=f3e38]: Nashville, TN
+        - option "Blue Ridge Commons, Retail, Asheville, NC" [ref=f3e39] [cursor=pointer]:
+          - generic [ref=f3e40]: Retail
+          - generic [ref=f3e42]:
+            - generic [ref=f3e43]: Blue Ridge Commons
+            - generic [ref=f3e44]: Asheville, NC
+        - option "Dilworth Yards, Multifamily, Charlotte, NC" [ref=f3e45] [cursor=pointer]:
+          - generic [ref=f3e46]: Multifamily
+          - generic [ref=f3e48]:
+            - generic [ref=f3e49]: Dilworth Yards
+            - generic [ref=f3e50]: Charlotte, NC
+        - option "South End Exchange, Retail, Charlotte, NC" [ref=f3e51] [cursor=pointer]:
+          - generic [ref=f3e52]: Retail
+          - generic [ref=f3e54]:
+            - generic [ref=f3e55]: South End Exchange
+            - generic [ref=f3e56]: Charlotte, NC
+        - option "Battery Point Hotel, Hospitality, Charleston, SC" [ref=f3e57] [cursor=pointer]:
+          - generic [ref=f3e58]: Hospitality
+          - generic [ref=f3e60]:
+            - generic [ref=f3e61]: Battery Point Hotel
+            - generic [ref=f3e62]: Charleston, SC
+  - tabpanel "Map" [ref=f3e63]:
+    - region "Project map" [ref=f3e64]:
+      - generic [ref=f3e65]:
+        - generic:
+          - generic:
+            - button "Nolensville Logistics Park, Industrial, Nolensville, TN — open details" [ref=f3e85] [cursor=pointer]
+            - button "New Approach School, Education, Arrington, TN — open details" [ref=f3e87] [cursor=pointer]
+            - button "Harpeth Multifamily Flats, Multifamily, Franklin, TN — open details" [ref=f3e89] [cursor=pointer]
+            - button "Cedar Row Marketplace, Retail, Franklin, TN — open details" [ref=f3e91] [cursor=pointer]
+        - generic:
+          - generic [ref=f3e74]:
+            - button "Zoom in" [ref=f3e75] [cursor=pointer]: +
+            - button "Zoom out" [ref=f3e76] [cursor=pointer]: −
+          - generic [ref=f3e77]:
+            - link "Leaflet" [ref=f3e78] [cursor=pointer]:
+              - /url: https://leafletjs.com
+            - text: "| ©"
+            - link "OpenStreetMap" [ref=f3e83] [cursor=pointer]:
+              - /url: https://www.openstreetmap.org/copyright
+            - text: contributors ©
+            - link "CARTO" [ref=f3e84] [cursor=pointer]:
+              - /url: https://carto.com/attributions
+  - dialog [ref=f3e93]:
+    - generic [ref=f3e95]:
+      - generic [ref=f3e96]: Retail
+      - heading "Cedar Row Marketplace" [level=2] [ref=f3e97]
+      - paragraph [ref=f3e98]: Franklin, TN
+      - button "Close" [active] [ref=f3e99]

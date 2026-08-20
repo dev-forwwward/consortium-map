@@ -1,0 +1,13 @@
+[     260ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5183/node_modules/.vite/deps/react-dom_client.js?v=6dc7c911:14335
+[     313ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://tiles-that-do-not-exist.invalid/dark_all/6/19/25.png:0
+[     313ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://tiles-that-do-not-exist.invalid/dark_all/6/16/24.png:0
+[     313ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://tiles-that-do-not-exist.invalid/dark_all/6/17/24.png:0
+[     313ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://tiles-that-do-not-exist.invalid/dark_all/6/17/23.png:0
+[     313ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://tiles-that-do-not-exist.invalid/dark_all/6/16/25.png:0
+[     313ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://tiles-that-do-not-exist.invalid/dark_all/6/16/23.png:0
+[   57200ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://tiles-that-do-not-exist.invalid/dark_all/6/16/24.png:0
+[   57200ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://tiles-that-do-not-exist.invalid/dark_all/6/17/24.png:0
+[   57200ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://tiles-that-do-not-exist.invalid/dark_all/6/16/25.png:0
+[   57201ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://tiles-that-do-not-exist.invalid/dark_all/6/16/23.png:0
+[   57201ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://tiles-that-do-not-exist.invalid/dark_all/6/17/25.png:0
+[   57201ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://tiles-that-do-not-exist.invalid/dark_all/6/17/23.png:0

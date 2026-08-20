@@ -1,0 +1,30 @@
+- generic [ref=f10e3]:
+  - tabpanel "List" [ref=f10e4]:
+    - generic [ref=f10e5]:
+      - heading "Our Projects" [level=1] [ref=f10e7]
+      - status [ref=f10e8]:
+        - generic [ref=f10e10]: Loading projects
+  - tabpanel "Map" [ref=f10e11]:
+    - region "Project map" [ref=f10e12]:
+      - generic [ref=f10e13]:
+        - generic:
+          - generic:
+            - button "Battery Point Hotel, Hospitality, Charleston, SC — open details" [ref=f10e14] [cursor=pointer]
+            - button "Blue Ridge Commons, Retail, Asheville, NC — open details" [ref=f10e16] [cursor=pointer]
+            - button "2 projects in this area, activate to zoom in" [ref=f10e18] [cursor=pointer]:
+              - generic [ref=f10e19]: "2"
+            - button "5 projects in this area, activate to zoom in" [ref=f10e20] [cursor=pointer]:
+              - generic [ref=f10e21]: "5"
+        - generic:
+          - generic [ref=f10e22]:
+            - button "Zoom in" [ref=f10e23] [cursor=pointer]: +
+            - button "Zoom out" [ref=f10e24] [cursor=pointer]: −
+          - generic [ref=f10e25]:
+            - link "Leaflet" [ref=f10e26] [cursor=pointer]:
+              - /url: https://leafletjs.com
+            - text: "| ©"
+            - link "OpenStreetMap" [ref=f10e31] [cursor=pointer]:
+              - /url: https://www.openstreetmap.org/copyright
+            - text: contributors ©
+            - link "CARTO" [ref=f10e32] [cursor=pointer]:
+              - /url: https://carto.com/attributions

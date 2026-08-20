@@ -1,0 +1,56 @@
+- generic [ref=f18e4]:
+  - tabpanel "List" [ref=f18e5]:
+    - generic [ref=f18e6]:
+      - heading "Our Projects" [level=1] [ref=f18e8]
+      - listbox "Our projects" [ref=f18e34]:
+        - option "New Approach School, Education, Arrington, TN" [ref=f18e35] [cursor=pointer]:
+          - generic [ref=f18e36]: Education
+          - generic [ref=f18e38]:
+            - generic [ref=f18e39]: New Approach School
+            - generic [ref=f18e40]: Arrington, TN
+        - option "Cedar Row Marketplace, Retail, Franklin, TN" [ref=f18e41] [cursor=pointer]:
+          - generic [ref=f18e42]: Retail
+          - generic [ref=f18e44]:
+            - generic [ref=f18e45]: Cedar Row Marketplace
+            - generic [ref=f18e46]: Franklin, TN
+        - option "Harpeth Multifamily Flats, Multifamily, Franklin, TN" [ref=f18e47] [cursor=pointer]:
+          - generic [ref=f18e48]: Multifamily
+          - generic [ref=f18e50]:
+            - generic [ref=f18e51]: Harpeth Multifamily Flats
+            - generic [ref=f18e52]: Franklin, TN
+        - option "Nolensville Logistics Park, Industrial, Nolensville, TN" [ref=f18e53] [cursor=pointer]:
+          - generic [ref=f18e54]: Industrial
+          - generic [ref=f18e56]:
+            - generic [ref=f18e57]: Nolensville Logistics Park
+            - generic [ref=f18e58]: Nolensville, TN
+        - option "Music Row Office Tower, Office, Nashville, TN" [ref=f18e59] [cursor=pointer]:
+          - generic [ref=f18e60]: Office
+          - generic [ref=f18e62]:
+            - generic [ref=f18e63]: Music Row Office Tower
+            - generic [ref=f18e64]: Nashville, TN
+        - option "Blue Ridge Commons, Retail, Asheville, NC" [ref=f18e65] [cursor=pointer]:
+          - generic [ref=f18e66]: Retail
+          - generic [ref=f18e68]:
+            - generic [ref=f18e69]: Blue Ridge Commons
+            - generic [ref=f18e70]: Asheville, NC
+        - option "Dilworth Yards, Multifamily, Charlotte, NC" [ref=f18e71] [cursor=pointer]:
+          - generic [ref=f18e72]: Multifamily
+          - generic [ref=f18e74]:
+            - generic [ref=f18e75]: Dilworth Yards
+            - generic [ref=f18e76]: Charlotte, NC
+        - option "South End Exchange, Retail, Charlotte, NC" [ref=f18e77] [cursor=pointer]:
+          - generic [ref=f18e78]: Retail
+          - generic [ref=f18e80]:
+            - generic [ref=f18e81]: South End Exchange
+            - generic [ref=f18e82]: Charlotte, NC
+        - option "Battery Point Hotel, Hospitality, Charleston, SC" [ref=f18e83] [cursor=pointer]:
+          - generic [ref=f18e84]: Hospitality
+          - generic [ref=f18e86]:
+            - generic [ref=f18e87]: Battery Point Hotel
+            - generic [ref=f18e88]: Charleston, SC
+  - tabpanel "Map" [ref=f18e12]:
+    - region "Project map" [ref=f18e13]:
+      - alert [ref=f18e93]:
+        - generic [ref=f18e94]: Map unavailable
+        - paragraph [ref=f18e95]: Map tiles failed to load. Check your connection and retry.
+        - button "Retry" [ref=f18e96]

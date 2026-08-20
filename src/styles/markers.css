@@ -1,0 +1,74 @@
+/* Custom marker + cluster styling. leaflet.markercluster's default
+   MarkerCluster.Default.css is intentionally not imported — every marker
+   here (individual or cluster) is drawn as a bright-orange divIcon so both
+   read as one consistent marker language, unlike the plugin's stock
+   blue/gradient scale. */
+
+.marker-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.marker-pin__dot {
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--color-brand);
+  border: 2px solid rgba(15, 16, 18, 0.9);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.marker-pin--selected .marker-pin__dot {
+  transform: scale(1.35);
+  box-shadow: 0 0 0 4px rgba(237, 237, 238, 0.85), 0 2px 10px rgba(0, 0, 0, 0.55);
+}
+
+.marker-pin:focus-visible,
+.cluster-pin:focus-visible {
+  outline: 2px solid var(--color-paper);
+  outline-offset: 3px;
+  border-radius: 9999px;
+}
+
+/* Applied imperatively (see ClusterLayer) to whichever element currently
+   represents a hovered location on screen — the marker itself, or its
+   parent cluster bubble if the marker is folded into one. */
+.map-hover-highlight {
+  transform: scale(1.18);
+  box-shadow: 0 0 0 4px rgba(255, 90, 31, 0.3), 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.cluster-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--color-brand);
+  border: 2px solid rgba(15, 16, 18, 0.9);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  line-height: 1;
+  transition: transform 120ms ease;
+}
+
+.cluster-pin:hover {
+  transform: scale(1.08);
+}
+
+.cluster-pin--sm {
+  font-size: 12px;
+}
+
+.cluster-pin--md {
+  font-size: 14px;
+}
+
+.cluster-pin--lg {
+  font-size: 16px;
+}

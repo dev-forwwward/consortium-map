@@ -1,9 +1,0 @@
-- generic [ref=f14e3]:
-  - tablist "View" [ref=f14e4]:
-    - tab "List" [selected] [ref=f14e5]
-    - tab "Map" [ref=f14e6]
-  - tabpanel "List" [ref=f14e8]:
-    - generic [ref=f14e9]:
-      - heading "Our Projects" [level=1] [ref=f14e11]
-      - status [ref=f14e12]:
-        - generic [ref=f14e14]: Loading projects

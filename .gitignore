@@ -1,0 +1,11 @@
+node_modules/
+dist/
+dist-ssr/
+.playwright-mcp/
+
+*.local
+.DS_Store
+npm-debug.log*
+
+.env
+.env.local

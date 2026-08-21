@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Fake host page — isolation smoke test</title>
+    <style>
+      /* Deliberately hostile styles matching common Tailwind-ish utility
+         names, to prove nothing from the widget's shadow root leaks out
+         and nothing from this page leaks in. */
+      body {
+        background: hotpink;
+        color: lime;
+        font-family: "Comic Sans MS", cursive;
+        margin: 0;
+      }
+      .flex {
+        display: block !important;
+        border: 10px dashed red !important;
+      }
+      .relative {
+        position: static !important;
+      }
+      .border-b {
+        border-bottom: 10px solid blue !important;
+      }
+      header {
+        background: yellow;
+        color: black;
+        padding: 24px;
+        font-size: 24px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      Fake Webflow host page — if this banner's yellow background or any
+      "flex"/"relative"/"border-b" chaos below bleeds into the widget (or
+      vice versa), isolation is broken.
+    </header>
+
+    <div class="flex relative border-b" style="height: 40px;">
+      host-page element reusing widget-like class names, on purpose
+    </div>
+
+    <div id="consortium-map-root" style="min-height: 600px; margin: 24px;"></div>
+
+    <div class="flex relative border-b" style="height: 40px;">
+      another host-page element below the widget
+    </div>
+
+    <script src="https://consortium-map-embed-fwd-projects.vercel.app/consortium-map.js" defer></script>
+  </body>
+</html>

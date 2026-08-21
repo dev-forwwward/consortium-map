@@ -19,6 +19,7 @@ export interface MapExplorerContextValue {
   selectLocation: (id: string | null, options?: { openDetail?: boolean }) => void;
 
   isDetailOpen: boolean;
+  detailOpenSeq: number;
   closeDetail: () => void;
 
   mobileView: MobileView;
@@ -43,6 +44,7 @@ export function MapExplorerProvider({ children }: { children: ReactNode }) {
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
   const [hoveredLocationId, setHoveredLocationId] = useState<string | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [detailOpenSeq, setDetailOpenSeq] = useState(0);
   const [mobileView, setMobileView] = useState<MobileView>('list');
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
@@ -53,6 +55,7 @@ export function MapExplorerProvider({ children }: { children: ReactNode }) {
       setSelectedLocationId(id);
       if (options?.openDetail && id) {
         setIsDetailOpen(true);
+        setDetailOpenSeq((seq) => seq + 1);
       }
     },
     [],
@@ -90,6 +93,7 @@ export function MapExplorerProvider({ children }: { children: ReactNode }) {
     setHovered,
     selectLocation,
     isDetailOpen,
+    detailOpenSeq,
     closeDetail,
     mobileView,
     setMobileView,

@@ -1,0 +1,14 @@
+@theme {
+  --color-ink: #0f1012;
+  --color-surface: #17181b;
+  --color-surface-raised: #1f2024;
+  --color-surface-line: #2a2b30;
+  --color-fog: #8b8c92;
+  --color-paper: #ededee;
+  --color-brand: #ff5a1f;
+  --color-brand-dim: #c4431a;
+
+  --font-display: "Archivo Expanded", "Arial Narrow", sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}

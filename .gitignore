@@ -1,7 +1,9 @@
 node_modules/
 dist/
+dist-embed/
 dist-ssr/
 .playwright-mcp/
+public/fonts/
 
 *.local
 .DS_Store

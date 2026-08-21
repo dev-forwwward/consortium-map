@@ -5,10 +5,10 @@ import { MapPanel } from '../map/MapPanel';
 import { LocationDetailModal } from '../map/LocationDetailModal';
 
 export function ExplorerLayout() {
-  const { mobileView } = useMapExplorer();
+  const { mobileView, detailOpenSeq } = useMapExplorer();
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-ink text-paper md:flex-row">
+    <div className="flex h-full flex-col overflow-hidden bg-ink text-paper md:flex-row">
       <MobileViewToggle />
 
       {/*
@@ -42,7 +42,7 @@ export function ExplorerLayout() {
         </div>
       </div>
 
-      <LocationDetailModal />
+      <LocationDetailModal key={detailOpenSeq} />
     </div>
   );
 }

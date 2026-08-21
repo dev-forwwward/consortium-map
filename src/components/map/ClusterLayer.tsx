@@ -117,8 +117,15 @@ export function ClusterLayer() {
     if (!clusterGroup || !selectedLocationId) return;
     const marker = markerByIdRef.current.get(selectedLocationId);
     if (!marker) return;
-    clusterGroup.zoomToShowLayer(marker, () => {});
-  }, [selectedLocationId]);
+    // zoomToShowLayer's own pan/zoom can fire moveend/zoomend against a
+    // not-yet-final view mid-operation — MapBoundsSync's list-filtering
+    // sync ends up stale if it trusts those. Force one more moveend once
+    // this callback fires, which Leaflet only calls after the reveal is
+    // truly finished, so the list resyncs against the actual final bounds.
+    clusterGroup.zoomToShowLayer(marker, () => {
+      map.fire('moveend');
+    });
+  }, [selectedLocationId, map]);
 
   // Hover highlighting is applied imperatively to whichever element is
   // currently on screen for the hovered location — the marker itself, or

@@ -7,9 +7,9 @@ Airbnb-style split-view location explorer — a scrollable project list synced w
 - React 19 + TypeScript, built with Vite
 - [Leaflet](https://leafletjs.com/) + [react-leaflet](https://react-leaflet.js.org/) for the map, [leaflet.markercluster](https://github.com/Leaflet/Leaflet.markercluster) for clustering
 - Tailwind CSS v4
-- Map tiles: CARTO dark basemap (free, no API key required)
+- Map tiles: CARTO dark basemap (free tier, **API key required**)
 
-No API keys or `.env` file needed — the app runs entirely off the bundled dataset and public tile servers.
+Project data comes from the bundled dataset, but the basemap needs a CARTO API key — see [Setup](#setup).
 
 ## Prerequisites
 
@@ -22,7 +22,35 @@ No API keys or `.env` file needed — the app runs entirely off the bundled data
 git clone https://github.com/dev-forwwward/consortium-map.git
 cd consortium-map
 npm install
+cp .env.example .env   # then paste your CARTO key into it
 ```
+
+### CARTO basemap API key
+
+**CARTO started requiring an API key on `basemaps.cartocdn.com` on 23 September 2026.** Without one,
+tiles still return HTTP 200 — the body is just a watermarked "API KEY REQUIRED" image — so the map
+renders as a wall of placeholder text with no error anywhere. This is what broke the live embed.
+
+Get a key at <https://carto.com/basemaps/apikey> (email address only, no account), then:
+
+```
+VITE_CARTO_BASEMAP_KEY=<your key>
+```
+
+- `.env` is gitignored, so the key stays out of the repo — but it is compiled into the JS bundle and
+  is readable by anyone who views source. That is normal for browser basemap keys.
+- **Add domain restrictions to the key in the CARTO dashboard.** That is the only thing stopping
+  someone else's traffic from consuming your quota.
+- Free tiers are 1M tile requests/month for commercial use, 5M for non-commercial. Requests are
+  counted per calendar month (UTC) across every key on the account. Consortium is commercial, so the
+  1M ceiling applies — roughly 10,000 sessions on the map page.
+- Both `npm run build` and `npm run build:embed` **fail** if the variable is unset
+  (`scripts/require-carto-key.mjs`). The embed is built locally and hand-pushed to Vercel, so a
+  forgotten `.env` would otherwise silently ship a broken map to the client's site.
+- `src/lib/tileHealth.ts` probes two dissimilar tiles at runtime and trips `MapErrorState` if they
+  come back byte-identical, which is what a placeholder basemap looks like. That catches an expired
+  key, a revoked key, or a blown quota in production — none of which raise `tileerror`, because they
+  all answer 200.
 
 ## Run it
 
@@ -94,7 +122,7 @@ To redeploy: rebuild (`npm run build:embed`) and push the contents of `dist-embe
 
 ## Webflow integration
 
-Live on the Webflow site **"Map"** at `https://map-f696d1.webflow.io`, single Home page. The whole integration is one Embed (`HtmlEmbed`) element on that page, containing three lines: the `#consortium-map-root` mount div, a `<noscript>` fallback, and the loader `<script src=".../consortium-map.js" defer>` tag — all three in the *same* element.
+Live on the Webflow dev site at `https://dev-consortium-map-filter-v2.webflow.io`, on the `/projects` page. (An earlier prototype lived at `https://map-f696d1.webflow.io` on its Home page — that one is superseded.) The whole integration is one Embed (`HtmlEmbed`) element on the page, containing three lines: the `#consortium-map-root` mount div, a `<noscript>` fallback, and the loader `<script src=".../consortium-map.js" defer>` tag — all three in the *same* element.
 
 **Why the script isn't in Webflow's page/footer custom code instead:** that's where it'd conventionally go, but `data_scripts_tool > set_page_freeform_code` returns `HTTP 406` for any block containing a `<script>` tag on this site (plain text/comments write fine — only executable script content is rejected). This looks like a plan-gated restriction on page/site-level custom code, separate from the Embed element's own code setting, which accepts `<script>` without issue. So the loader script lives inside the Embed element itself rather than in the footer block. If a future redesign moves the script out of the Embed element, expect to hit this same 406 and either upgrade the Webflow site plan or keep the script co-located with the mount div as done here.
 

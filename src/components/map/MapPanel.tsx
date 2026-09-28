@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import { useMapExplorer } from '../../hooks/useMapExplorer';
 import { TILE_ATTRIBUTION, TILE_URL, DEFAULT_CENTER, DEFAULT_ZOOM } from '../../lib/constants';
@@ -6,10 +7,31 @@ import { MapBoundsSync } from './MapBoundsSync';
 import { MapInvalidateOnShow } from './MapInvalidateOnShow';
 import { MapErrorBoundary } from './MapErrorBoundary';
 import { MapErrorState } from '../states/MapErrorState';
+import { probeTileSource } from '../../lib/tileHealth';
 
 export function MapPanel() {
   const { mapReady, setMapReady, mapError, setMapError, mapInstanceKey, retryMap } =
     useMapExplorer();
+
+  // A gated or over-quota basemap answers HTTP 200 with a placeholder image, so
+  // `tileerror` below never fires and the map fails with a clean console. Probe
+  // for that explicitly. Re-runs on retry, which bumps mapInstanceKey.
+  useEffect(() => {
+    let cancelled = false;
+
+    probeTileSource(TILE_URL).then((health) => {
+      if (cancelled || health !== 'placeholder') return;
+      console.error(
+        'Basemap is returning placeholder tiles, not map data. The CARTO API key is ' +
+          'missing, invalid, or over its monthly quota — check https://carto.com/basemaps/apikey',
+      );
+      setMapError('The map basemap is unavailable. This has been logged — please try again shortly.');
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mapInstanceKey, setMapError]);
 
   return (
     <div className="relative h-full w-full bg-ink" role="region" aria-label="Project map">

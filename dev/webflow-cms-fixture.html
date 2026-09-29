@@ -5,97 +5,285 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Fake Webflow CMS page — map embed test</title>
     <!--
-      Stands in for the Webflow projects page: a CMS Collection List carrying
-      the data-cm-* attribute contract, a category filter that hides items
-      with display:none (as a filter tool would), and the map mount.
-      Build first (npm run build:embed), then serve the repo root, e.g.
-      npx serve . and open /dev/webflow-cms-fixture.html.
+      Mirrors the markup the Webflow projects page renders (DEV - Map v2 site):
+      a Works Collection List whose cards carry data-cm-item plus
+      data-cm-field children (CMS-bound text; slug/lat/lng in a hidden
+      .cm-data block), and a Finsweet List Filter v2 radio form whose
+      category radios get fs-list-value from their labels via the same
+      inline script the Webflow embed uses. Loads the real Finsweet script,
+      so it needs network access.
+
+      npm run build:embed, then serve the repo root
+      (python3 -m http.server 4321) and open
+      http://localhost:4321/dev/webflow-cms-fixture.html
     -->
     <style>
-      body { margin: 0; background: #2a2a2a; color: #eee; font-family: system-ui, sans-serif; }
-      .filters { display: flex; flex-wrap: wrap; gap: 8px; padding: 24px; }
-      .filters button { background: none; border: 1px solid #666; color: #aaa; padding: 6px 12px; cursor: pointer; text-transform: uppercase; }
-      .filters button.is-on { color: #fff; border-color: #fff; }
-      .layout { display: flex; height: 80vh; margin: 0 24px 24px; }
-      .list { width: 420px; overflow-y: auto; background: #0e0f11; }
-      .card { display: flex; gap: 12px; padding: 12px; cursor: pointer; border-left: 3px solid transparent; }
-      .card img { width: 120px; height: 80px; object-fit: cover; }
-      .card h3 { margin: 4px 0; font-size: 16px; font-weight: 400; }
-      .card p { margin: 0; font-size: 12px; color: #999; letter-spacing: 0.1em; text-transform: uppercase; }
-      .card a { color: #ff5a1f; font-size: 12px; }
-      .tag { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; }
-      .card.is-cm-hover { background: #1c1d20; }
-      .card.is-cm-active { border-left-color: #ff5a1f; background: #1c1d20; }
-      #consortium-map-root { flex: 1; }
+      body { margin: 0; background: #2a2a2a; color: #f2f0eb; font-family: system-ui, sans-serif; }
+      .filter_form { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.1em 0.6em; padding: 24px; font-size: 1.5rem; font-weight: 500; text-transform: uppercase; }
+      .filter_list-wrapper, .filter_list { display: contents; }
+      .filter_option { display: inline-flex; cursor: pointer; opacity: 0.5; transition: opacity 200ms; }
+      .filter_option.is-list-active { opacity: 1; }
+      .filter_radio { position: absolute; width: 1px; height: 1px; opacity: 0; margin: 0; }
+      .map-explorer { display: flex; height: 80vh; margin: 0 24px 24px; background: #0e0f11; }
+      .map-explorer_list { width: 30rem; flex: none; overflow-y: auto; padding: 2rem 1rem; }
+      .map-explorer_title { margin-bottom: 1.5rem; font-size: 1.5rem; letter-spacing: 0.08em; text-transform: uppercase; }
+      .map-explorer_map { flex: 1; min-width: 0; position: relative; }
+      .project-card { display: flex; gap: 1rem; align-items: center; padding: 0.75rem; border-left: 3px solid transparent; cursor: pointer; }
+      .project-card.is-cm-hover { background: #1a1b1e; }
+      .project-card.is-cm-active { background: #1a1b1e; border-left-color: #ff5a1f; }
+      .project-card_image-wrap { position: relative; width: 9rem; height: 6.25rem; flex: none; overflow: hidden; }
+      .project-card_image { width: 100%; height: 100%; object-fit: cover; }
+      .project-card_tag { position: absolute; top: 0; left: 0; padding: 0.25rem 0.5rem; background: #0e0f11; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; }
+      .project-card_name { font-size: 1.125rem; }
+      .project-card_location { font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.6; }
+      .cm-data { display: none; }
     </style>
   </head>
   <body>
-    <div class="filters">
-      <button type="button" class="is-on" data-filter="all">All</button>
-      <button type="button" data-filter="Education">Education</button>
-      <button type="button" data-filter="Retail">Retail</button>
-      <button type="button" data-filter="Multifamily">Multifamily</button>
-      <button type="button" data-filter="Industrial">Industrial</button>
-      <button type="button" data-filter="Office">Office</button>
-      <button type="button" data-filter="Hospitality">Hospitality</button>
-    </div>
-
-    <div class="layout">
-      <div class="list" role="list" data-cm-list>
-        <div role="listitem" class="card" data-cm-item data-cm-id="new-approach-school" data-cm-name="New Approach School" data-cm-category="Education" data-cm-city="Arrington" data-cm-state="TN" data-cm-image="https://picsum.photos/seed/consortium-1/640/420" data-cm-lat="35.786" data-cm-lng="-86.933" data-cm-url="/projects/new-approach-school">
-          <img src="https://picsum.photos/seed/consortium-1/640/420" alt="" />
-          <div><span class="tag">Education</span><h3>New Approach School</h3><p>Arrington, TN</p><a href="/projects/new-approach-school">View</a></div>
-        </div>
-        <div role="listitem" class="card" data-cm-item data-cm-id="cedar-row-marketplace" data-cm-name="Cedar Row Marketplace" data-cm-category="Retail" data-cm-city="Franklin" data-cm-state="TN" data-cm-image="https://picsum.photos/seed/consortium-2/640/420" data-cm-lat="35.925" data-cm-lng="-86.869" data-cm-url="/projects/cedar-row-marketplace">
-          <img src="https://picsum.photos/seed/consortium-2/640/420" alt="" />
-          <div><span class="tag">Retail</span><h3>Cedar Row Marketplace</h3><p>Franklin, TN</p><a href="/projects/cedar-row-marketplace">View</a></div>
-        </div>
-        <div role="listitem" class="card" data-cm-item data-cm-id="harpeth-multifamily-flats" data-cm-name="Harpeth Multifamily Flats" data-cm-category="Multifamily" data-cm-city="Franklin" data-cm-state="TN" data-cm-image="https://picsum.photos/seed/consortium-3/640/420" data-cm-lat="35.93" data-cm-lng="-86.88" data-cm-url="/projects/harpeth-multifamily-flats">
-          <img src="https://picsum.photos/seed/consortium-3/640/420" alt="" />
-          <div><span class="tag">Multifamily</span><h3>Harpeth Multifamily Flats</h3><p>Franklin, TN</p><a href="/projects/harpeth-multifamily-flats">View</a></div>
-        </div>
-        <div role="listitem" class="card" data-cm-item data-cm-id="nolensville-logistics-park" data-cm-name="Nolensville Logistics Park" data-cm-category="Industrial" data-cm-city="Nolensville" data-cm-state="TN" data-cm-image="https://picsum.photos/seed/consortium-4/640/420" data-cm-lat="35.951" data-cm-lng="-86.67" data-cm-url="/projects/nolensville-logistics-park">
-          <img src="https://picsum.photos/seed/consortium-4/640/420" alt="" />
-          <div><span class="tag">Industrial</span><h3>Nolensville Logistics Park</h3><p>Nolensville, TN</p><a href="/projects/nolensville-logistics-park">View</a></div>
-        </div>
-        <div role="listitem" class="card" data-cm-item data-cm-id="music-row-office-tower" data-cm-name="Music Row Office Tower" data-cm-category="Office" data-cm-city="Nashville" data-cm-state="TN" data-cm-image="https://picsum.photos/seed/consortium-5/640/420" data-cm-lat="36.152" data-cm-lng="-86.798" data-cm-url="/projects/music-row-office-tower">
-          <img src="https://picsum.photos/seed/consortium-5/640/420" alt="" />
-          <div><span class="tag">Office</span><h3>Music Row Office Tower</h3><p>Nashville, TN</p><a href="/projects/music-row-office-tower">View</a></div>
-        </div>
-        <div role="listitem" class="card" data-cm-item data-cm-id="blue-ridge-commons" data-cm-name="Blue Ridge Commons" data-cm-category="Retail" data-cm-city="Asheville" data-cm-state="NC" data-cm-image="https://picsum.photos/seed/consortium-6/640/420" data-cm-lat="35.595" data-cm-lng="-82.551" data-cm-url="/projects/blue-ridge-commons">
-          <img src="https://picsum.photos/seed/consortium-6/640/420" alt="" />
-          <div><span class="tag">Retail</span><h3>Blue Ridge Commons</h3><p>Asheville, NC</p><a href="/projects/blue-ridge-commons">View</a></div>
-        </div>
-        <div role="listitem" class="card" data-cm-item data-cm-id="dilworth-yards" data-cm-name="Dilworth Yards" data-cm-category="Multifamily" data-cm-city="Charlotte" data-cm-state="NC" data-cm-image="https://picsum.photos/seed/consortium-7/640/420" data-cm-lat="35.204" data-cm-lng="-80.851" data-cm-url="/projects/dilworth-yards">
-          <img src="https://picsum.photos/seed/consortium-7/640/420" alt="" />
-          <div><span class="tag">Multifamily</span><h3>Dilworth Yards</h3><p>Charlotte, NC</p><a href="/projects/dilworth-yards">View</a></div>
-        </div>
-        <div role="listitem" class="card" data-cm-item data-cm-id="south-end-exchange" data-cm-name="South End Exchange" data-cm-category="Retail" data-cm-city="Charlotte" data-cm-state="NC" data-cm-image="https://picsum.photos/seed/consortium-8/640/420" data-cm-lat="35.211" data-cm-lng="-80.859" data-cm-url="/projects/south-end-exchange">
-          <img src="https://picsum.photos/seed/consortium-8/640/420" alt="" />
-          <div><span class="tag">Retail</span><h3>South End Exchange</h3><p>Charlotte, NC</p><a href="/projects/south-end-exchange">View</a></div>
-        </div>
-        <div role="listitem" class="card" data-cm-item data-cm-id="battery-point-hotel" data-cm-name="Battery Point Hotel" data-cm-category="Hospitality" data-cm-city="Charleston" data-cm-state="SC" data-cm-image="https://picsum.photos/seed/consortium-9/640/420" data-cm-lat="32.776" data-cm-lng="-79.931" data-cm-url="/projects/battery-point-hotel">
-          <img src="https://picsum.photos/seed/consortium-9/640/420" alt="" />
-          <div><span class="tag">Hospitality</span><h3>Battery Point Hotel</h3><p>Charleston, SC</p><a href="/projects/battery-point-hotel">View</a></div>
-        </div>
-        <div role="listitem" class="card" data-cm-item data-cm-id="bad-coords" data-cm-name="Editor Typo Project" data-cm-category="Retail" data-cm-city="Nowhere" data-cm-state="TN" data-cm-lat="" data-cm-lng="-86.7">
-          <div><span class="tag">Retail</span><h3>Editor Typo Project</h3><p>Missing latitude — should be skipped with a warning</p></div>
+    <form class="filter_form" fs-list-element="filters">
+      <label class="filter_option w-radio"><input type="radio" name="category" value="all" class="filter_radio" fs-list-field="category" fs-list-value="" checked /><span class="filter_label w-form-label">All</span></label>
+      <div class="filter_list-wrapper w-dyn-list">
+        <div role="list" class="filter_list w-dyn-items">
+          <div role="listitem" class="w-dyn-item">
+            <label class="filter_option w-radio"><input type="radio" name="category" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Franchise Design</span></label>
+          </div>
+          <div role="listitem" class="w-dyn-item">
+            <label class="filter_option w-radio"><input type="radio" name="category" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Hospitality</span></label>
+          </div>
+          <div role="listitem" class="w-dyn-item">
+            <label class="filter_option w-radio"><input type="radio" name="category" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Mixed-use Development</span></label>
+          </div>
+          <div role="listitem" class="w-dyn-item">
+            <label class="filter_option w-radio"><input type="radio" name="category" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Multi-Family</span></label>
+          </div>
+          <div role="listitem" class="w-dyn-item">
+            <label class="filter_option w-radio"><input type="radio" name="category" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Place of Worship</span></label>
+          </div>
+          <div role="listitem" class="w-dyn-item">
+            <label class="filter_option w-radio"><input type="radio" name="category" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Single Family</span></label>
+          </div>
+          <div role="listitem" class="w-dyn-item">
+            <label class="filter_option w-radio"><input type="radio" name="category" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Site Masterplan</span></label>
+          </div>
+          <div role="listitem" class="w-dyn-item">
+            <label class="filter_option w-radio"><input type="radio" name="category" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Tenant Improvement</span></label>
+          </div>
         </div>
       </div>
-      <div id="consortium-map-root" data-css-url="/dist-embed/consortium-map.css"></div>
-    </div>
+    </form>
 
+    <div class="map-explorer">
+      <div class="map-explorer_list">
+        <div class="map-explorer_title">Our projects</div>
+        <div class="w-dyn-list" data-cm-list="true">
+          <div role="list" class="w-dyn-items" fs-list-element="list">
+          <div role="listitem" class="w-dyn-item">
+            <div class="project-card" data-cm-item="true">
+              <div class="project-card_image-wrap">
+                <img class="project-card_image" data-cm-field="image" src="https://picsum.photos/seed/cm-0/320/220" alt="Brentwood Vistas" />
+                <div class="project-card_tag" fs-list-field="category" data-cm-field="category">Multi-Family</div>
+              </div>
+              <div class="project-card_body">
+                <div class="project-card_name" data-cm-field="name">Brentwood Vistas</div>
+                <div class="project-card_location" data-cm-field="location">Brentwood, TN</div>
+              </div>
+              <div class="cm-data">
+                <div data-cm-field="id">brentwood-vistas</div>
+                <div data-cm-field="lat">36.0331</div>
+                <div data-cm-field="lng">-86.7828</div>
+              </div>
+            </div>
+          </div>
+          <div role="listitem" class="w-dyn-item">
+            <div class="project-card" data-cm-item="true">
+              <div class="project-card_image-wrap">
+                <img class="project-card_image" data-cm-field="image" src="https://picsum.photos/seed/cm-1/320/220" alt="Responsive Blog Design" />
+                <div class="project-card_tag" fs-list-field="category" data-cm-field="category">Tenant Improvement</div>
+              </div>
+              <div class="project-card_body">
+                <div class="project-card_name" data-cm-field="name">Responsive Blog Design</div>
+                <div class="project-card_location" data-cm-field="location">Franklin, TN</div>
+              </div>
+              <div class="cm-data">
+                <div data-cm-field="id">web-design-project-5</div>
+                <div data-cm-field="lat">35.9251</div>
+                <div data-cm-field="lng">-86.8689</div>
+              </div>
+            </div>
+          </div>
+          <div role="listitem" class="w-dyn-item">
+            <div class="project-card" data-cm-item="true">
+              <div class="project-card_image-wrap">
+                <img class="project-card_image" data-cm-field="image" src="https://picsum.photos/seed/cm-2/320/220" alt="Portfolio Website for Photographer" />
+                <div class="project-card_tag" fs-list-field="category" data-cm-field="category">Hospitality</div>
+              </div>
+              <div class="project-card_body">
+                <div class="project-card_name" data-cm-field="name">Portfolio Website for Photographer</div>
+                <div class="project-card_location" data-cm-field="location">Nashville, TN</div>
+              </div>
+              <div class="cm-data">
+                <div data-cm-field="id">web-design-project-3</div>
+                <div data-cm-field="lat">36.1627</div>
+                <div data-cm-field="lng">-86.7816</div>
+              </div>
+            </div>
+          </div>
+          <div role="listitem" class="w-dyn-item">
+            <div class="project-card" data-cm-item="true">
+              <div class="project-card_image-wrap">
+                <img class="project-card_image" data-cm-field="image" src="https://picsum.photos/seed/cm-3/320/220" alt="Landing Page for Product Launch" />
+                <div class="project-card_tag" fs-list-field="category" data-cm-field="category">Franchise Design</div>
+              </div>
+              <div class="project-card_body">
+                <div class="project-card_name" data-cm-field="name">Landing Page for Product Launch</div>
+                <div class="project-card_location" data-cm-field="location">Nolensville, TN</div>
+              </div>
+              <div class="cm-data">
+                <div data-cm-field="id">web-design-project-9</div>
+                <div data-cm-field="lat">35.9523</div>
+                <div data-cm-field="lng">-86.6694</div>
+              </div>
+            </div>
+          </div>
+          <div role="listitem" class="w-dyn-item">
+            <div class="project-card" data-cm-item="true">
+              <div class="project-card_image-wrap">
+                <img class="project-card_image" data-cm-field="image" src="https://picsum.photos/seed/cm-4/320/220" alt="Infographic Design" />
+                <div class="project-card_tag" fs-list-field="category" data-cm-field="category">Single Family</div>
+              </div>
+              <div class="project-card_body">
+                <div class="project-card_name" data-cm-field="name">Infographic Design</div>
+                <div class="project-card_location" data-cm-field="location">Murfreesboro, TN</div>
+              </div>
+              <div class="cm-data">
+                <div data-cm-field="id">graphic-design-project-4</div>
+                <div data-cm-field="lat">35.8456</div>
+                <div data-cm-field="lng">-86.3903</div>
+              </div>
+            </div>
+          </div>
+          <div role="listitem" class="w-dyn-item">
+            <div class="project-card" data-cm-item="true">
+              <div class="project-card_image-wrap">
+                <img class="project-card_image" data-cm-field="image" src="https://picsum.photos/seed/cm-5/320/220" alt="Event Poster Design" />
+                <div class="project-card_tag" fs-list-field="category" data-cm-field="category">Mixed-use Development</div>
+              </div>
+              <div class="project-card_body">
+                <div class="project-card_name" data-cm-field="name">Event Poster Design</div>
+                <div class="project-card_location" data-cm-field="location">Asheville, NC</div>
+              </div>
+              <div class="cm-data">
+                <div data-cm-field="id">graphic-design-project-6</div>
+                <div data-cm-field="lat">35.5951</div>
+                <div data-cm-field="lng">-82.5515</div>
+              </div>
+            </div>
+          </div>
+          <div role="listitem" class="w-dyn-item">
+            <div class="project-card" data-cm-item="true">
+              <div class="project-card_image-wrap">
+                <img class="project-card_image" data-cm-field="image" src="https://picsum.photos/seed/cm-6/320/220" alt="E-commerce Website" />
+                <div class="project-card_tag" fs-list-field="category" data-cm-field="category">Tenant Improvement</div>
+              </div>
+              <div class="project-card_body">
+                <div class="project-card_name" data-cm-field="name">E-commerce Website</div>
+                <div class="project-card_location" data-cm-field="location">Charlotte, NC</div>
+              </div>
+              <div class="cm-data">
+                <div data-cm-field="id">web-design-project-1</div>
+                <div data-cm-field="lat">35.2271</div>
+                <div data-cm-field="lng">-80.8431</div>
+              </div>
+            </div>
+          </div>
+          <div role="listitem" class="w-dyn-item">
+            <div class="project-card" data-cm-item="true">
+              <div class="project-card_image-wrap">
+                <img class="project-card_image" data-cm-field="image" src="https://picsum.photos/seed/cm-7/320/220" alt="Corporate Website Redesign" />
+                <div class="project-card_tag" fs-list-field="category" data-cm-field="category">Site Masterplan</div>
+              </div>
+              <div class="project-card_body">
+                <div class="project-card_name" data-cm-field="name">Corporate Website Redesign</div>
+                <div class="project-card_location" data-cm-field="location">Charlotte, NC</div>
+              </div>
+              <div class="cm-data">
+                <div data-cm-field="id">web-design-project-7</div>
+                <div data-cm-field="lat">35.2108</div>
+                <div data-cm-field="lng">-80.859</div>
+              </div>
+            </div>
+          </div>
+          <div role="listitem" class="w-dyn-item">
+            <div class="project-card" data-cm-item="true">
+              <div class="project-card_image-wrap">
+                <img class="project-card_image" data-cm-field="image" src="https://picsum.photos/seed/cm-8/320/220" alt="Brochure for Non-Profit" />
+                <div class="project-card_tag" fs-list-field="category" data-cm-field="category">Place of Worship</div>
+              </div>
+              <div class="project-card_body">
+                <div class="project-card_name" data-cm-field="name">Brochure for Non-Profit</div>
+                <div class="project-card_location" data-cm-field="location">Charleston, SC</div>
+              </div>
+              <div class="cm-data">
+                <div data-cm-field="id">graphic-design-project-10</div>
+                <div data-cm-field="lat">32.7765</div>
+                <div data-cm-field="lng">-79.9311</div>
+              </div>
+            </div>
+          </div>
+          <div role="listitem" class="w-dyn-item">
+            <div class="project-card" data-cm-item="true">
+              <div class="project-card_image-wrap">
+                <img class="project-card_image" data-cm-field="image" src="https://picsum.photos/seed/cm-9/320/220" alt="Brand Identity Creation" />
+                <div class="project-card_tag" fs-list-field="category" data-cm-field="category">Multi-Family</div>
+              </div>
+              <div class="project-card_body">
+                <div class="project-card_name" data-cm-field="name">Brand Identity Creation</div>
+                <div class="project-card_location" data-cm-field="location">Knoxville, TN</div>
+              </div>
+              <div class="cm-data">
+                <div data-cm-field="id">graphic-design-project-2</div>
+                <div data-cm-field="lat">35.9606</div>
+                <div data-cm-field="lng">-83.9207</div>
+              </div>
+            </div>
+          </div>
+          <div role="listitem" class="w-dyn-item">
+            <div class="project-card" data-cm-item="true">
+              <div class="project-card_body">
+                <div class="project-card_name" data-cm-field="name">Editor Typo Project</div>
+                <div class="project-card_location" data-cm-field="location">Missing latitude — skipped with a warning</div>
+              </div>
+              <div class="cm-data"><div data-cm-field="id">typo</div><div data-cm-field="lat"></div><div data-cm-field="lng">-86.7</div></div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+      <div class="map-explorer_map">
+        <div id="consortium-map-root" style="height: 100%; min-height: 600px" data-css-url="/dist-embed/consortium-map.css"></div>
+        <script>
+          (function () {
+            document.querySelectorAll('[data-cm-filter-from-label]').forEach(function (input) {
+              var label = input.closest('label');
+              var text = label && label.textContent.trim();
+              if (text) { input.setAttribute('fs-list-value', text); input.value = text; }
+            });
+          })();
+        </script>
+        <script async type="module" src="https://cdn.jsdelivr.net/npm/@finsweet/attributes@2/attributes.js" fs-list></script>
+        <script src="/dist-embed/consortium-map.js" defer></script>
+      </div>
+    </div>
     <script>
-      document.querySelector('.filters').addEventListener('click', (event) => {
-        const button = event.target.closest('button[data-filter]');
-        if (!button) return;
-        document.querySelectorAll('.filters button').forEach((b) => b.classList.toggle('is-on', b === button));
-        const filter = button.dataset.filter;
-        document.querySelectorAll('[data-cm-item]').forEach((item) => {
-          item.style.display = filter === 'all' || item.dataset.cmCategory === filter ? '' : 'none';
-        });
+      // Stand-in for webflow.js, which every published Webflow page loads.
+      // Finsweet Attributes queues its init with window.Webflow.push(fn) and
+      // waits for Webflow's runtime to flush that queue — without this the
+      // filter never initialises on a plain HTML page.
+      window.addEventListener('DOMContentLoaded', function () {
+        var queue = Array.isArray(window.Webflow) ? window.Webflow : [];
+        window.Webflow = { push: function (fn) { fn(); }, require: function () { return null; } };
+        queue.forEach(function (fn) { fn(); });
       });
     </script>
-    <script src="/dist-embed/consortium-map.js" defer></script>
   </body>
 </html>

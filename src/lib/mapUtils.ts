@@ -20,5 +20,10 @@ export function locationAriaLabel(location: {
   city: string;
   state: string;
 }): string {
-  return `${location.name}, ${location.category}, ${location.city}, ${location.state}`;
+  return [location.name, location.category, location.city, location.state].filter(Boolean).join(', ');
+}
+
+/** "City, ST" — omits whichever part is empty (CMS items may lack a state). */
+export function formatPlace(location: { city: string; state: string }): string {
+  return [location.city, location.state].filter(Boolean).join(', ');
 }

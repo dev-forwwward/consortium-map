@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useMapExplorer } from '../../hooks/useMapExplorer';
+import { formatPlace } from '../../lib/mapUtils';
 
 export function LocationDetailModal() {
   const { isDetailOpen, selectedLocation, closeDetail } = useMapExplorer();
@@ -40,11 +41,9 @@ export function LocationDetailModal() {
     >
       {selectedLocation ? (
         <div className="flex flex-col">
-          <img
-            src={selectedLocation.image}
-            alt=""
-            className="h-56 w-full object-cover"
-          />
+          {selectedLocation.image ? (
+            <img src={selectedLocation.image} alt="" className="h-56 w-full object-cover" />
+          ) : null}
           <div className="flex flex-col gap-3 p-6">
             <span className="w-fit border border-brand px-2 py-1 font-mono text-[11px] uppercase tracking-[0.2em] text-brand">
               {selectedLocation.category}
@@ -53,7 +52,7 @@ export function LocationDetailModal() {
               {selectedLocation.name}
             </h2>
             <p className="font-mono text-xs uppercase tracking-[0.15em] text-fog">
-              {selectedLocation.city}, {selectedLocation.state}
+              {formatPlace(selectedLocation)}
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
               {selectedLocation.url ? (

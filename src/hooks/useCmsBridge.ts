@@ -6,6 +6,7 @@ import {
   ITEM_SELECTOR,
   findCmsItem,
   findCmsList,
+  getCmsItemId,
 } from '../lib/cmsSource';
 
 function itemFrom(target: EventTarget | null): HTMLElement | null {
@@ -37,8 +38,9 @@ export function useCmsBridge() {
     // item's own children.
     const handleOver = (event: MouseEvent) => {
       const item = itemFrom(event.target);
-      if (!item?.dataset.cmId || item.contains(event.relatedTarget as Node | null)) return;
-      setHovered(item.dataset.cmId);
+      if (!item || item.contains(event.relatedTarget as Node | null)) return;
+      const id = getCmsItemId(item);
+      if (id) setHovered(id);
     };
     const handleOut = (event: MouseEvent) => {
       const item = itemFrom(event.target);
@@ -49,9 +51,9 @@ export function useCmsBridge() {
     // default behavior; anywhere else on the card reveals it on the map.
     const handleClick = (event: MouseEvent) => {
       const item = itemFrom(event.target);
-      if (!item?.dataset.cmId) return;
-      if ((event.target as Element).closest('a[href]')) return;
-      selectLocation(item.dataset.cmId);
+      if (!item || (event.target as Element).closest('a[href]')) return;
+      const id = getCmsItemId(item);
+      if (id) selectLocation(id);
     };
 
     list.addEventListener('mouseover', handleOver);

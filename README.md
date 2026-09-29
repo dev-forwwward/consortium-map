@@ -133,52 +133,69 @@ Also deliberately **not** using Webflow's `register_hosted_script` (SRI-hashed s
 
 The project list lives in a Webflow CMS collection so the client can add, edit and remove projects in the Editor. The embed reads the rendered Collection List from the page, so every change the client publishes shows up on the map with no redeploy.
 
-### Collection fields
+This is set up on the **DEV - Map v2** site (`dev-consortium-map-filter-v2`), **Projects** page.
 
-| Field | Type | Notes |
+### Collection fields (Works collection)
+
+The existing **Works** collection is the data source. Three fields were added for the map:
+
+| Field | Slug | Type | Notes |
+|---|---|---|---|
+| Latitude | `latitude-2` | Plain text | Decimal degrees, e.g. `36.0331`. In Google Maps, right-click the spot: the first number. |
+| Longitude | `longitude-2` | Plain text | e.g. `-86.7828` (US longitudes are negative). The second number. |
+| Work Category | `work-category` | Reference → Work Categories | Drives the filter and the card tag. |
+
+Existing fields used: Title, Slug, Thumbnail Image, and Location (`"City, ST"`, which the embed splits into city and state).
+
+- **Coordinates are Plain Text on purpose.** A Number field created through the Webflow API defaults to *integer*, which rounds 36.0331 to 36 (about 50 km off), and the API can't change that format. The embed parses the text and accepts either `.` or `,` as the decimal separator.
+- The slugs end in `-2` because Webflow keeps the slugs of deleted fields reserved.
+- The old `Category` Option field ("Category 1–4") is template filler and isn't used.
+
+### Markup contract
+
+The embed looks for:
+
+- **`[data-cm-list]`** on the Collection List wrapper. `fs-list-element="list"` goes on the inner list for Finsweet.
+- **`[data-cm-item]`** on each card, one per Collection Item.
+- Each field value, in this order:
+  1. a `data-cm-<field>` attribute on the card, or
+  2. a descendant tagged **`data-cm-field="<field>"`**, taking its text (or its `src` for an `<img>`).
+
+Webflow can bind CMS fields into an element's *text* but not into a regular Div's *attributes*, so the Webflow page uses form 2:
+
+| `data-cm-field` | Element in the card | Bound to |
 |---|---|---|
-| Name | Plain text | |
-| Slug | (built in) | Used as the item's id |
-| Category | Option or Reference | Also what the filter matches on |
-| City, State | Plain text | |
-| Image | Image | |
-| Latitude, Longitude | **Number** (decimal) | Webflow has no geo field. Copy them from Google Maps (right-click → the first number is latitude). |
+| `name` | `.project-card_name` | Title |
+| `category` | `.project-card_tag` (also `fs-list-field="category"`) | Work Category → Name |
+| `location` | `.project-card_location` | Location |
+| `image` | `.project-card_image` | Thumbnail Image |
+| `id` | hidden `.cm-data` block | Slug |
+| `lat` / `lng` | hidden `.cm-data` block | Latitude / Longitude |
 
-### Attribute contract
-
-On the **Collection List** element (the wrapper around the items): `data-cm-list` (no value).
-
-On each **Collection Item**, add custom attributes bound to CMS fields:
-
-| Attribute | Bound to |
-|---|---|
-| `data-cm-item` | (no value) |
-| `data-cm-id` | Slug |
-| `data-cm-name` | Name |
-| `data-cm-category` | Category |
-| `data-cm-city` / `data-cm-state` | City / State |
-| `data-cm-image` | Image (URL) |
-| `data-cm-lat` / `data-cm-lng` | Latitude / Longitude |
-| `data-cm-url` | *(optional)* project page URL, which adds a "View project" button to the map's detail popup |
+`city` / `state` / `url` are also read if present. `url` adds a "View project" button to the map's popup.
 
 An item with a missing or invalid coordinate is left off the map and logged once as a `console.warn` that names it. The rest of the map is unaffected.
 
 ### How the list and map stay in sync
 
-`src/hooks/useLocations.ts` (`cms` source) watches the list with a `MutationObserver`. Whenever items are hidden (`display:none` / `hidden`), removed or added, it re-reads the visible ones, so the map always shows exactly what the filter shows. It doesn't depend on any particular filter library. `src/hooks/useCmsBridge.ts` links the two directions:
+`src/hooks/useLocations.ts` (`cms` source) watches the list with a `MutationObserver`. Whenever items are hidden (`display:none` / `hidden`), removed or added, it re-reads the visible ones, so the map always shows exactly what the filter shows. `src/hooks/useCmsBridge.ts` links the two directions:
 
 - Hovering a card highlights its marker (or the cluster containing it).
-- Clicking a card zooms the map to its marker. Clicks on a real `<a>` inside the card still navigate normally. If the *whole card* is a Link Block, clicking it navigates, so put the project link on a button or title instead if you want click-to-locate.
-- Hovering or clicking a marker adds `is-cm-hover` / `is-cm-active` to the matching card and scrolls it into view. **Style these two classes in the Designer** (create them as combo classes on the card).
+- Clicking a card zooms the map to its marker. Clicks on a real `<a>` inside the card still navigate normally.
+- Hovering or clicking a marker adds `is-cm-hover` / `is-cm-active` to the matching card and scrolls it into view. Both are styled as combo classes on `.project-card` in the Designer.
 
 The embed no longer narrows the list to the map's viewport. The list follows the filter only.
 
-### Filter (Finsweet Attributes)
+### Filter (Finsweet Attributes List Filter v2)
 
-Use Finsweet Attributes **List Filter** on the same Collection List: `fs-list-element="list"` on the list, `fs-list-field="category"` on the category text in each card, and the filter buttons in the top row. Because of the `HTTP 406` restriction described in [Webflow integration](#webflow-integration), the Finsweet `<script>` probably has to live in an Embed element too, not in page custom code.
+- A Webflow **Form** gets `fs-list-element="filters"` (v2 requires a real Form element).
+- Inside it is an "All" radio (`fs-list-field="category"`, `fs-list-value=""`) plus a Collection List of **Work Categories**, sorted by Order, with one radio per category.
+- The selected option gets Finsweet's `is-list-active` class.
+- **v2 needs an explicit `fs-list-value` on each radio**, and Webflow can't bind a CMS value into it. Each category radio therefore carries `data-cm-filter-from-label`. A small inline script in the map Embed copies the label text into `fs-list-value` before Finsweet (loaded `async`) initializes. New categories added in the CMS work with no Designer change.
+- The Finsweet `<script>` also lives in the map Embed, because page custom code rejects `<script>` on this plan (the `HTTP 406` above).
+- Finsweet waits for `webflow.js` before it starts. `dev/webflow-cms-fixture.html` includes a tiny stand-in for it, so the real Finsweet script can be tested locally.
 
 ### Limits
 
 - A Collection List shows at most **100 items**. Past that, use Finsweet's load-more/pagination. Appended items are picked up automatically.
-- Layout (list column, sticky map column, mobile stacking or toggling) is built in Webflow. Give `#consortium-map-root` an explicit height. The map resizes itself whenever its box changes.
-
+- Layout is built in Webflow: `.map-explorer` holds a 30rem list column and a flexible map column, and stacks below 992px. `#consortium-map-root` fills the map column, and the map resizes itself whenever its box changes.

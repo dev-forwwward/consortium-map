@@ -16,8 +16,16 @@ export function findCmsList(root: ParentNode = document): HTMLElement | null {
   return root.querySelector<HTMLElement>(LIST_SELECTOR);
 }
 
+/** An item's id, from `data-cm-id` or a `data-cm-field="id"` child. */
+export function getCmsItemId(item: HTMLElement): string | undefined {
+  return readField(item, 'id');
+}
+
 export function findCmsItem(id: string, root: ParentNode = document): HTMLElement | null {
-  return root.querySelector<HTMLElement>(`${ITEM_SELECTOR}[data-cm-id="${CSS.escape(id)}"]`);
+  for (const item of root.querySelectorAll<HTMLElement>(ITEM_SELECTOR)) {
+    if (getCmsItemId(item) === id) return item;
+  }
+  return null;
 }
 
 /**
@@ -49,6 +57,30 @@ function parseCoordinate(raw: string | undefined): number | null {
 }
 
 /**
+ * Reads one field from an item. A `data-cm-<key>` attribute on the item wins;
+ * otherwise a descendant tagged `data-cm-field="<key>"` supplies it — its
+ * `src` for an image, its text otherwise. The descendant form exists because
+ * Webflow can bind CMS fields into an element's text but not into a regular
+ * Div's attributes, so bound (optionally hidden) text elements are the
+ * editor-friendly way to carry values like coordinates.
+ */
+function readField(item: HTMLElement, key: string): string | undefined {
+  const attr = item.getAttribute(`data-cm-${key}`);
+  if (attr != null && attr !== '') return attr;
+  const el = item.querySelector<HTMLElement>(`[data-cm-field="${key}"]`);
+  if (!el) return undefined;
+  const value = el instanceof HTMLImageElement ? el.currentSrc || el.src : el.textContent;
+  return value?.trim() || undefined;
+}
+
+/** "Brentwood, TN" → { city: "Brentwood", state: "TN" }; no comma → all city. */
+function splitLocation(location: string): { city: string; state: string } {
+  const comma = location.lastIndexOf(',');
+  if (comma === -1) return { city: location.trim(), state: '' };
+  return { city: location.slice(0, comma).trim(), state: location.slice(comma + 1).trim() };
+}
+
+/**
  * Reads the rendered CMS items into Locations, skipping anything the filter
  * has hidden. An item with a missing or malformed coordinate is skipped with
  * a warning rather than thrown on, so one editor typo never takes down the
@@ -61,39 +93,45 @@ export function readCmsLocations(list: HTMLElement): Location[] {
   list.querySelectorAll<HTMLElement>(ITEM_SELECTOR).forEach((item) => {
     if (isFilteredOut(item, list)) return;
 
-    const { cmId, cmName, cmLat, cmLng } = item.dataset;
-    const latitude = parseCoordinate(cmLat);
-    const longitude = parseCoordinate(cmLng);
+    const id = readField(item, 'id');
+    const name = readField(item, 'name');
+    const latitude = parseCoordinate(readField(item, 'lat'));
+    const longitude = parseCoordinate(readField(item, 'lng'));
 
-    if (!cmId || latitude == null || longitude == null) {
+    if (!id || latitude == null || longitude == null) {
       warnOnce(
-        `missing:${cmId ?? cmName}`,
-        `skipping CMS item "${cmName ?? cmId ?? '(unnamed)'}" — ` +
-          'data-cm-id, data-cm-lat and data-cm-lng must all be set, with numeric coordinates',
+        `missing:${id ?? name}`,
+        `skipping CMS item "${name ?? id ?? '(unnamed)'}" — ` +
+          'id, lat and lng must all be set, with numeric coordinates',
       );
       return;
     }
     if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
       warnOnce(
-        `range:${cmId}`,
-        `skipping CMS item "${cmName ?? cmId}" — coordinates out of range ` +
+        `range:${id}`,
+        `skipping CMS item "${name ?? id}" — coordinates out of range ` +
           `(${latitude}, ${longitude}); latitude and longitude may be swapped`,
       );
       return;
     }
-    if (seen.has(cmId)) return;
-    seen.add(cmId);
+    if (seen.has(id)) return;
+    seen.add(id);
+
+    const location = readField(item, 'location');
+    const { city, state } = location
+      ? splitLocation(location)
+      : { city: readField(item, 'city') ?? '', state: readField(item, 'state') ?? '' };
 
     locations.push({
-      id: cmId,
-      name: cmName ?? '',
-      category: item.dataset.cmCategory ?? '',
-      city: item.dataset.cmCity ?? '',
-      state: item.dataset.cmState ?? '',
-      image: item.dataset.cmImage ?? '',
+      id,
+      name: name ?? '',
+      category: readField(item, 'category') ?? '',
+      city,
+      state,
+      image: readField(item, 'image') ?? '',
       latitude,
       longitude,
-      url: item.dataset.cmUrl || undefined,
+      url: readField(item, 'url'),
     });
   });
 

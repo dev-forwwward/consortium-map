@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => {
       },
       rollupOptions: {
         output: {
-          entryFileNames: 'consortium-map.js',
+          entryFileNames: 'consortium-map-v2.js',
           // Only the CSS entry point needs a stable name (it's the one file
           // the Webflow snippet's own <link> injection references directly).
           // Everything else (font subset files, etc.) keeps normal hashed
@@ -39,7 +39,7 @@ export default defineConfig(({ mode }) => {
           // base64 data URI, ballooning the CSS to over 1MB.
           assetFileNames: (assetInfo) =>
             assetInfo.names?.[0]?.endsWith('.css')
-              ? 'consortium-map.[ext]'
+              ? 'consortium-map-v2.[ext]'
               : 'assets/[name]-[hash][extname]',
         },
       },

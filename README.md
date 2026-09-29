@@ -101,8 +101,8 @@ This same app also ships as a self-mounting `<script>` embed for the client's We
 
 ```bash
 npm run build:embed
-# → dist-embed/consortium-map.js   (stable filename, no hash)
-# → dist-embed/consortium-map.css  (stable filename, no hash)
+# → dist-embed/consortium-map-v2.js   (stable filename, no hash)
+# → dist-embed/consortium-map-v2.css  (stable filename, no hash)
 ```
 
 Filenames are pinned (not hashed) because the Webflow snippet references them by exact URL — a hash would mean editing Webflow on every deploy.
@@ -110,6 +110,18 @@ Filenames are pinned (not hashed) because the Webflow snippet references them by
 **Hosting:** deployed to Vercel, project `consortium-map-embed` in the `fwd-projects` team. Live URLs:
 - `https://consortium-map-embed-fwd-projects.vercel.app/consortium-map.js`
 - `https://consortium-map-embed-fwd-projects.vercel.app/consortium-map.css`
+
+**Two versions are served side by side.** `consortium-map.js` / `.css` (v1) is the original self-contained list + map. It is frozen and still used by older pages. `consortium-map-v2.js` / `.css` is the map-only, CMS-driven build this repo now produces. A Vercel deploy replaces *every* file, so each deploy must include the v1 files too, or older pages break. Download them from the live URLs before deploying:
+
+```bash
+mkdir deploy && cd deploy
+curl -sfO https://consortium-map-embed-fwd-projects.vercel.app/consortium-map.js
+curl -sfO https://consortium-map-embed-fwd-projects.vercel.app/consortium-map.css
+cp -R ../dist-embed/* .          # v2 files + fonts/
+vercel link --yes --project consortium-map-embed --scope fwd-projects
+vercel deploy --scope fwd-projects          # preview first; check both versions load
+vercel deploy --prod --scope fwd-projects
+```
 
 To redeploy: rebuild (`npm run build:embed`) and push the contents of `dist-embed/` to that Vercel project. **Vercel Authentication (deployment protection) must stay disabled on this project** — it's on by default for new Vercel projects and returns an HTML auth-wall page instead of the actual JS/CSS if re-enabled, silently breaking the embed on the live Webflow site with no error in Webflow itself.
 

@@ -10,12 +10,12 @@ import { MapExplorerProvider } from './context/MapExplorerProvider';
 import { MapOnlyLayout } from './components/layout/MapOnlyLayout';
 
 const MOUNT_ID = 'consortium-map-root';
-// Deployed alongside consortium-map.js at build/deploy time — hardcoded
+// Deployed alongside consortium-map-v2.js at build/deploy time — hardcoded
 // rather than resolved via import.meta.url, whose behavior isn't reliably
 // guaranteed under Rollup's iife output format.
 // A `data-css-url` on the mount element overrides it, for testing a local
 // build against a fixture page.
-const CSS_URL = 'https://consortium-map-embed-fwd-projects.vercel.app/consortium-map.css';
+const CSS_URL = 'https://consortium-map-embed-fwd-projects.vercel.app/consortium-map-v2.css';
 
 function mount() {
   const container = document.getElementById(MOUNT_ID);

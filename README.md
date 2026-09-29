@@ -203,6 +203,7 @@ The embed no longer narrows the list to the map's viewport. The list follows the
 - A Webflow **Form** gets `fs-list-element="filters"` (v2 requires a real Form element).
 - Inside it is an "All" radio (`fs-list-field="category"`, `fs-list-value=""`) plus a Collection List of **Work Categories**, sorted by Order, with one radio per category.
 - The selected option gets Finsweet's `is-list-active` class.
+- Webflow's radio "group name" setting only writes `data-name`. The real `name` attributes come out as `radio` / `radio-2`, which puts "All" and the categories in separate groups, and a custom `checked` attribute is dropped. The inline script in the map Embed sets every filter radio to `name="category"` and checks "All" on load.
 - **v2 needs an explicit `fs-list-value` on each radio**, and Webflow can't bind a CMS value into it. Each category radio therefore carries `data-cm-filter-from-label`. A small inline script in the map Embed copies the label text into `fs-list-value` before Finsweet (loaded `async`) initializes. New categories added in the CMS work with no Designer change.
 - The Finsweet `<script>` also lives in the map Embed, because page custom code rejects `<script>` on this plan (the `HTTP 406` above).
 - Finsweet waits for `webflow.js` before it starts. `dev/webflow-cms-fixture.html` includes a tiny stand-in for it, so the real Finsweet script can be tested locally.

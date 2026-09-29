@@ -41,32 +41,32 @@
   </head>
   <body>
     <form class="filter_form" fs-list-element="filters">
-      <label class="filter_option w-radio"><input type="radio" name="category" value="all" class="filter_radio" fs-list-field="category" fs-list-value="" checked /><span class="filter_label w-form-label">All</span></label>
+      <label class="filter_option w-radio"><input type="radio" name="radio" id="filter-all" value="all" class="filter_radio" fs-list-field="category" fs-list-value="" /><span class="filter_label w-form-label">All</span></label>
       <div class="filter_list-wrapper w-dyn-list">
         <div role="list" class="filter_list w-dyn-items">
           <div role="listitem" class="w-dyn-item">
-            <label class="filter_option w-radio"><input type="radio" name="category" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Franchise Design</span></label>
+            <label class="filter_option w-radio"><input type="radio" name="radio-2" id="radio" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Franchise Design</span></label>
           </div>
           <div role="listitem" class="w-dyn-item">
-            <label class="filter_option w-radio"><input type="radio" name="category" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Hospitality</span></label>
+            <label class="filter_option w-radio"><input type="radio" name="radio-2" id="radio" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Hospitality</span></label>
           </div>
           <div role="listitem" class="w-dyn-item">
-            <label class="filter_option w-radio"><input type="radio" name="category" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Mixed-use Development</span></label>
+            <label class="filter_option w-radio"><input type="radio" name="radio-2" id="radio" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Mixed-use Development</span></label>
           </div>
           <div role="listitem" class="w-dyn-item">
-            <label class="filter_option w-radio"><input type="radio" name="category" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Multi-Family</span></label>
+            <label class="filter_option w-radio"><input type="radio" name="radio-2" id="radio" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Multi-Family</span></label>
           </div>
           <div role="listitem" class="w-dyn-item">
-            <label class="filter_option w-radio"><input type="radio" name="category" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Place of Worship</span></label>
+            <label class="filter_option w-radio"><input type="radio" name="radio-2" id="radio" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Place of Worship</span></label>
           </div>
           <div role="listitem" class="w-dyn-item">
-            <label class="filter_option w-radio"><input type="radio" name="category" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Single Family</span></label>
+            <label class="filter_option w-radio"><input type="radio" name="radio-2" id="radio" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Single Family</span></label>
           </div>
           <div role="listitem" class="w-dyn-item">
-            <label class="filter_option w-radio"><input type="radio" name="category" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Site Masterplan</span></label>
+            <label class="filter_option w-radio"><input type="radio" name="radio-2" id="radio" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Site Masterplan</span></label>
           </div>
           <div role="listitem" class="w-dyn-item">
-            <label class="filter_option w-radio"><input type="radio" name="category" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Tenant Improvement</span></label>
+            <label class="filter_option w-radio"><input type="radio" name="radio-2" id="radio" value="Radio 2" class="filter_radio" fs-list-field="category" data-cm-filter-from-label="true" /><span class="filter_label w-form-label">Tenant Improvement</span></label>
           </div>
         </div>
       </div>
@@ -262,11 +262,21 @@
       <div class="map-explorer_map">
         <div id="consortium-map-root" style="height: 100%; min-height: 600px" data-css-url="/dist-embed/consortium-map-v2.css"></div>
         <script>
+          // Same prep script as the Webflow map Embed: one real radio name
+          // (Webflow's "group name" only sets data-name), fs-list-value from
+          // each category label, and "All" selected on load.
           (function () {
-            document.querySelectorAll('[data-cm-filter-from-label]').forEach(function (input) {
-              var label = input.closest('label');
-              var text = label && label.textContent.trim();
-              if (text) { input.setAttribute('fs-list-value', text); input.value = text; }
+            var form = document.querySelector('[fs-list-element="filters"]');
+            if (!form) return;
+            form.querySelectorAll('input[type="radio"]').forEach(function (input) {
+              input.name = 'category';
+              if (input.id === 'radio') input.removeAttribute('id');
+              if (input.hasAttribute('data-cm-filter-from-label')) {
+                var label = input.closest('label');
+                var text = label && label.textContent.trim();
+                if (text) { input.setAttribute('fs-list-value', text); input.value = text; }
+              }
+              if (input.getAttribute('fs-list-value') === '') input.checked = true;
             });
           })();
         </script>

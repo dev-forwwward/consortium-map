@@ -6,12 +6,15 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import './styles/markers.css';
 import './embed.css';
 
-import App from './App';
+import { MapExplorerProvider } from './context/MapExplorerProvider';
+import { MapOnlyLayout } from './components/layout/MapOnlyLayout';
 
 const MOUNT_ID = 'consortium-map-root';
 // Deployed alongside consortium-map.js at build/deploy time — hardcoded
 // rather than resolved via import.meta.url, whose behavior isn't reliably
 // guaranteed under Rollup's iife output format.
+// A `data-css-url` on the mount element overrides it, for testing a local
+// build against a fixture page.
 const CSS_URL = 'https://consortium-map-embed-fwd-projects.vercel.app/consortium-map.css';
 
 function mount() {
@@ -26,7 +29,7 @@ function mount() {
 
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  link.href = CSS_URL;
+  link.href = container.dataset.cssUrl ?? CSS_URL;
   shadow.appendChild(link);
 
   const appRoot = document.createElement('div');
@@ -35,7 +38,9 @@ function mount() {
 
   createRoot(appRoot).render(
     <StrictMode>
-      <App />
+      <MapExplorerProvider source="cms">
+        <MapOnlyLayout />
+      </MapExplorerProvider>
     </StrictMode>,
   );
 

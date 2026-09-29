@@ -1,6 +1,6 @@
 import { createContext, useCallback, useMemo, useState, type ReactNode } from 'react';
 import type { Location } from '../types/location';
-import { useLocations } from '../hooks/useLocations';
+import { useLocations, type LocationSource } from '../hooks/useLocations';
 
 export type MobileView = 'list' | 'map';
 export type DataStatus = 'loading' | 'ready' | 'error';
@@ -35,8 +35,15 @@ export interface MapExplorerContextValue {
 
 export const MapExplorerContext = createContext<MapExplorerContextValue | null>(null);
 
-export function MapExplorerProvider({ children }: { children: ReactNode }) {
-  const { locations, status: dataStatus } = useLocations();
+export function MapExplorerProvider({
+  children,
+  source = 'static',
+}: {
+  children: ReactNode;
+  /** Fixed for the provider's lifetime — 'cms' reads the Webflow list on the host page. */
+  source?: LocationSource;
+}) {
+  const { locations, status: dataStatus } = useLocations(source);
 
   const [visibleLocationIds, setVisibleLocationIds] = useState<Set<string>>(
     () => new Set(locations.map((location) => location.id)),

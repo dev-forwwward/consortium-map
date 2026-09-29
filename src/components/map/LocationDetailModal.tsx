@@ -55,13 +55,23 @@ export function LocationDetailModal() {
             <p className="font-mono text-xs uppercase tracking-[0.15em] text-fog">
               {selectedLocation.city}, {selectedLocation.state}
             </p>
-            <button
-              type="button"
-              onClick={() => dialogRef.current?.close()}
-              className="mt-4 self-start border border-surface-line px-5 py-2 font-mono text-xs uppercase tracking-[0.2em] text-paper transition-colors hover:border-brand hover:text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-            >
-              Close
-            </button>
+            <div className="mt-4 flex flex-wrap gap-3">
+              {selectedLocation.url ? (
+                <a
+                  href={selectedLocation.url}
+                  className="border border-brand bg-brand px-5 py-2 font-mono text-xs uppercase tracking-[0.2em] text-ink transition-colors hover:bg-transparent hover:text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                >
+                  View project
+                </a>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => dialogRef.current?.close()}
+                className="self-start border border-surface-line px-5 py-2 font-mono text-xs uppercase tracking-[0.2em] text-paper transition-colors hover:border-brand hover:text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       ) : null}

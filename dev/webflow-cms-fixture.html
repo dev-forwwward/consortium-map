@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fake Webflow CMS page — map embed test</title>
+    <!--
+      Stands in for the Webflow projects page: a CMS Collection List carrying
+      the data-cm-* attribute contract, a category filter that hides items
+      with display:none (as a filter tool would), and the map mount.
+      Build first (npm run build:embed), then serve the repo root, e.g.
+      npx serve . and open /dev/webflow-cms-fixture.html.
+    -->
+    <style>
+      body { margin: 0; background: #2a2a2a; color: #eee; font-family: system-ui, sans-serif; }
+      .filters { display: flex; flex-wrap: wrap; gap: 8px; padding: 24px; }
+      .filters button { background: none; border: 1px solid #666; color: #aaa; padding: 6px 12px; cursor: pointer; text-transform: uppercase; }
+      .filters button.is-on { color: #fff; border-color: #fff; }
+      .layout { display: flex; height: 80vh; margin: 0 24px 24px; }
+      .list { width: 420px; overflow-y: auto; background: #0e0f11; }
+      .card { display: flex; gap: 12px; padding: 12px; cursor: pointer; border-left: 3px solid transparent; }
+      .card img { width: 120px; height: 80px; object-fit: cover; }
+      .card h3 { margin: 4px 0; font-size: 16px; font-weight: 400; }
+      .card p { margin: 0; font-size: 12px; color: #999; letter-spacing: 0.1em; text-transform: uppercase; }
+      .card a { color: #ff5a1f; font-size: 12px; }
+      .tag { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; }
+      .card.is-cm-hover { background: #1c1d20; }
+      .card.is-cm-active { border-left-color: #ff5a1f; background: #1c1d20; }
+      #consortium-map-root { flex: 1; }
+    </style>
+  </head>
+  <body>
+    <div class="filters">
+      <button type="button" class="is-on" data-filter="all">All</button>
+      <button type="button" data-filter="Education">Education</button>
+      <button type="button" data-filter="Retail">Retail</button>
+      <button type="button" data-filter="Multifamily">Multifamily</button>
+      <button type="button" data-filter="Industrial">Industrial</button>
+      <button type="button" data-filter="Office">Office</button>
+      <button type="button" data-filter="Hospitality">Hospitality</button>
+    </div>
+
+    <div class="layout">
+      <div class="list" role="list" data-cm-list>
+        <div role="listitem" class="card" data-cm-item data-cm-id="new-approach-school" data-cm-name="New Approach School" data-cm-category="Education" data-cm-city="Arrington" data-cm-state="TN" data-cm-image="https://picsum.photos/seed/consortium-1/640/420" data-cm-lat="35.786" data-cm-lng="-86.933" data-cm-url="/projects/new-approach-school">
+          <img src="https://picsum.photos/seed/consortium-1/640/420" alt="" />
+          <div><span class="tag">Education</span><h3>New Approach School</h3><p>Arrington, TN</p><a href="/projects/new-approach-school">View</a></div>
+        </div>
+        <div role="listitem" class="card" data-cm-item data-cm-id="cedar-row-marketplace" data-cm-name="Cedar Row Marketplace" data-cm-category="Retail" data-cm-city="Franklin" data-cm-state="TN" data-cm-image="https://picsum.photos/seed/consortium-2/640/420" data-cm-lat="35.925" data-cm-lng="-86.869" data-cm-url="/projects/cedar-row-marketplace">
+          <img src="https://picsum.photos/seed/consortium-2/640/420" alt="" />
+          <div><span class="tag">Retail</span><h3>Cedar Row Marketplace</h3><p>Franklin, TN</p><a href="/projects/cedar-row-marketplace">View</a></div>
+        </div>
+        <div role="listitem" class="card" data-cm-item data-cm-id="harpeth-multifamily-flats" data-cm-name="Harpeth Multifamily Flats" data-cm-category="Multifamily" data-cm-city="Franklin" data-cm-state="TN" data-cm-image="https://picsum.photos/seed/consortium-3/640/420" data-cm-lat="35.93" data-cm-lng="-86.88" data-cm-url="/projects/harpeth-multifamily-flats">
+          <img src="https://picsum.photos/seed/consortium-3/640/420" alt="" />
+          <div><span class="tag">Multifamily</span><h3>Harpeth Multifamily Flats</h3><p>Franklin, TN</p><a href="/projects/harpeth-multifamily-flats">View</a></div>
+        </div>
+        <div role="listitem" class="card" data-cm-item data-cm-id="nolensville-logistics-park" data-cm-name="Nolensville Logistics Park" data-cm-category="Industrial" data-cm-city="Nolensville" data-cm-state="TN" data-cm-image="https://picsum.photos/seed/consortium-4/640/420" data-cm-lat="35.951" data-cm-lng="-86.67" data-cm-url="/projects/nolensville-logistics-park">
+          <img src="https://picsum.photos/seed/consortium-4/640/420" alt="" />
+          <div><span class="tag">Industrial</span><h3>Nolensville Logistics Park</h3><p>Nolensville, TN</p><a href="/projects/nolensville-logistics-park">View</a></div>
+        </div>
+        <div role="listitem" class="card" data-cm-item data-cm-id="music-row-office-tower" data-cm-name="Music Row Office Tower" data-cm-category="Office" data-cm-city="Nashville" data-cm-state="TN" data-cm-image="https://picsum.photos/seed/consortium-5/640/420" data-cm-lat="36.152" data-cm-lng="-86.798" data-cm-url="/projects/music-row-office-tower">
+          <img src="https://picsum.photos/seed/consortium-5/640/420" alt="" />
+          <div><span class="tag">Office</span><h3>Music Row Office Tower</h3><p>Nashville, TN</p><a href="/projects/music-row-office-tower">View</a></div>
+        </div>
+        <div role="listitem" class="card" data-cm-item data-cm-id="blue-ridge-commons" data-cm-name="Blue Ridge Commons" data-cm-category="Retail" data-cm-city="Asheville" data-cm-state="NC" data-cm-image="https://picsum.photos/seed/consortium-6/640/420" data-cm-lat="35.595" data-cm-lng="-82.551" data-cm-url="/projects/blue-ridge-commons">
+          <img src="https://picsum.photos/seed/consortium-6/640/420" alt="" />
+          <div><span class="tag">Retail</span><h3>Blue Ridge Commons</h3><p>Asheville, NC</p><a href="/projects/blue-ridge-commons">View</a></div>
+        </div>
+        <div role="listitem" class="card" data-cm-item data-cm-id="dilworth-yards" data-cm-name="Dilworth Yards" data-cm-category="Multifamily" data-cm-city="Charlotte" data-cm-state="NC" data-cm-image="https://picsum.photos/seed/consortium-7/640/420" data-cm-lat="35.204" data-cm-lng="-80.851" data-cm-url="/projects/dilworth-yards">
+          <img src="https://picsum.photos/seed/consortium-7/640/420" alt="" />
+          <div><span class="tag">Multifamily</span><h3>Dilworth Yards</h3><p>Charlotte, NC</p><a href="/projects/dilworth-yards">View</a></div>
+        </div>
+        <div role="listitem" class="card" data-cm-item data-cm-id="south-end-exchange" data-cm-name="South End Exchange" data-cm-category="Retail" data-cm-city="Charlotte" data-cm-state="NC" data-cm-image="https://picsum.photos/seed/consortium-8/640/420" data-cm-lat="35.211" data-cm-lng="-80.859" data-cm-url="/projects/south-end-exchange">
+          <img src="https://picsum.photos/seed/consortium-8/640/420" alt="" />
+          <div><span class="tag">Retail</span><h3>South End Exchange</h3><p>Charlotte, NC</p><a href="/projects/south-end-exchange">View</a></div>
+        </div>
+        <div role="listitem" class="card" data-cm-item data-cm-id="battery-point-hotel" data-cm-name="Battery Point Hotel" data-cm-category="Hospitality" data-cm-city="Charleston" data-cm-state="SC" data-cm-image="https://picsum.photos/seed/consortium-9/640/420" data-cm-lat="32.776" data-cm-lng="-79.931" data-cm-url="/projects/battery-point-hotel">
+          <img src="https://picsum.photos/seed/consortium-9/640/420" alt="" />
+          <div><span class="tag">Hospitality</span><h3>Battery Point Hotel</h3><p>Charleston, SC</p><a href="/projects/battery-point-hotel">View</a></div>
+        </div>
+        <div role="listitem" class="card" data-cm-item data-cm-id="bad-coords" data-cm-name="Editor Typo Project" data-cm-category="Retail" data-cm-city="Nowhere" data-cm-state="TN" data-cm-lat="" data-cm-lng="-86.7">
+          <div><span class="tag">Retail</span><h3>Editor Typo Project</h3><p>Missing latitude — should be skipped with a warning</p></div>
+        </div>
+      </div>
+      <div id="consortium-map-root" data-css-url="/dist-embed/consortium-map.css"></div>
+    </div>
+
+    <script>
+      document.querySelector('.filters').addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-filter]');
+        if (!button) return;
+        document.querySelectorAll('.filters button').forEach((b) => b.classList.toggle('is-on', b === button));
+        const filter = button.dataset.filter;
+        document.querySelectorAll('[data-cm-item]').forEach((item) => {
+          item.style.display = filter === 'all' || item.dataset.cmCategory === filter ? '' : 'none';
+        });
+      });
+    </script>
+    <script src="/dist-embed/consortium-map.js" defer></script>
+  </body>
+</html>

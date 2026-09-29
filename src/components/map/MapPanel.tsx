@@ -9,7 +9,12 @@ import { MapErrorBoundary } from './MapErrorBoundary';
 import { MapErrorState } from '../states/MapErrorState';
 import { probeTileSource } from '../../lib/tileHealth';
 
-export function MapPanel() {
+/**
+ * `syncBounds` narrows the list to the current viewport (the standalone
+ * explorer). The Webflow embed turns it off: there the list is the CMS
+ * Collection List, driven by the page's filter rather than the map.
+ */
+export function MapPanel({ syncBounds = true }: { syncBounds?: boolean }) {
   const { mapReady, setMapReady, mapError, setMapError, mapInstanceKey, retryMap } =
     useMapExplorer();
 
@@ -54,7 +59,7 @@ export function MapPanel() {
               }}
             />
             <ClusterLayer />
-            <MapBoundsSync />
+            {syncBounds ? <MapBoundsSync /> : null}
             <MapInvalidateOnShow />
           </MapContainer>
         </MapErrorBoundary>

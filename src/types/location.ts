@@ -7,4 +7,6 @@ export interface Location {
   image: string;
   latitude: number;
   longitude: number;
+  /** Project page URL — only set when the data comes from the Webflow CMS. */
+  url?: string;
 }

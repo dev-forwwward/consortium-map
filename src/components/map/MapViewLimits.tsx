@@ -13,6 +13,12 @@ const PADDING = { desktop: { topLeft: [24, 24], bottomRight: [24, 24] }, mobile:
  * the user can pan anywhere inside it but not past it. Both depend on the
  * container size, so they are recomputed on every resize (window, expanded
  * map, breakpoint change).
+ *
+ * The map opens on that zoomed-out view. It is applied on the first real
+ * measurement, not at mount: on the Webflow page the map starts hidden (0x0),
+ * and Leaflet's own initial centre ends up in the top-left corner once the
+ * container gets its size. Later resizes re-centre it only when the user is
+ * zoomed fully out; otherwise the view is kept inside the new limit.
  */
 export function MapViewLimits() {
   const map = useMap();
@@ -20,6 +26,7 @@ export function MapViewLimits() {
   useEffect(() => {
     const us = latLngBounds(CONTIGUOUS_US_BOUNDS);
     const desktop = window.matchMedia(DESKTOP_MAP_QUERY);
+    let fitted = false;
 
     const apply = () => {
       const size = map.getSize();
@@ -48,9 +55,19 @@ export function MapViewLimits() {
         map.unproject(centre.add(half), zoom),
       );
 
+      const atMinZoom = map.getZoom() <= map.getMinZoom() + 0.01;
       map.options.maxBoundsViscosity = 1;
       map.setMinZoom(zoom);
       map.setMaxBounds(view);
+      if (!fitted || atMinZoom) {
+        // Unsnapped, or setView rounds the fractional zoom up and crops the US.
+        map.options.zoomSnap = 0;
+        map.setView(map.unproject(centre, zoom), zoom, { animate: false });
+        map.options.zoomSnap = snap;
+        fitted = true;
+      } else {
+        map.panInsideBounds(view, { animate: false });
+      }
     };
 
     apply();

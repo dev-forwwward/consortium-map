@@ -68,7 +68,7 @@ Webflow page (light DOM)                         Embed (shadow DOM)
 
 ### State model
 
-State is expressed as combo classes on `.map-explorer`, so every state can be styled in the Webflow Designer.
+State is expressed as combo classes on `.map-explorer`. The Webflow Designer cannot style a child based on a parent's combo class, so state-dependent rules live in a CSS file in this repo, `webflow/view-modes.css`, pasted into a `<style>` Embed on the Projects page and linked from the fixture. Base (split view) styles stay in Designer classes.
 
 | State | Values | Classes | Applies at |
 |---|---|---|---|
@@ -155,7 +155,8 @@ Highlighting (`is-cm-active`) is still applied by `useCmsBridge`, as today. Scro
 | `src/hooks/useCmsBridge.ts` | Removes the card click handler and the scroll-on-select effect. Keeps hover in both directions and the hover/active classes. |
 | `vite.embed.config.ts` | Output names `consortium-map-v3.js` / `.css`. |
 | `src/embed.tsx` `CSS_URL` | Points at `consortium-map-v3.css`. |
-| `dev/webflow-cms-fixture.html` | Adds the pill, grid/list toggle, expand button, sheet markup, and the combo-class CSS that mirrors the Webflow build. |
+| `webflow/view-modes.css` (new) | State-dependent CSS. Source of truth for the Webflow `<style>` Embed. |
+| `dev/webflow-cms-fixture.html` | Adds the pill, grid/list toggle, expand button, sheet markup, and links `webflow/view-modes.css`. |
 | `README.md` | Documents the new markup contract, the `cm:select` event, v3, and the deploy steps for three versions. |
 
 The standalone dev app (`npm run dev`, `ExplorerLayout`) keeps its modal and current behavior.

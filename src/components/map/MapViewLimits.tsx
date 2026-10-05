@@ -5,6 +5,9 @@ import { CONTIGUOUS_US_BOUNDS, DESKTOP_MAP_QUERY } from '../../lib/constants';
 
 // Breathing room around the US at the furthest zoom-out, in px. Mobile adds
 // room at the bottom for the peeking sheet that overlaps the map.
+// Smallest usable area (after padding), in px, worth fitting the US into.
+const MIN_ROOM = 120;
+const MAX_ZOOM = 18;
 const PADDING = { desktop: { topLeft: [24, 24], bottomRight: [24, 24] }, mobile: { topLeft: [12, 12], bottomRight: [12, 72] } } as const;
 
 /**
@@ -36,12 +39,15 @@ export function MapViewLimits() {
       const topLeft = point(pad.topLeft[0], pad.topLeft[1]);
       const bottomRight = point(pad.bottomRight[0], pad.bottomRight[1]);
 
-      // Exact (fractional) fit: with the default whole-level snap, getBoundsZoom
-      // would round down and leave the furthest zoom-out needlessly far out.
+      // Exact (fractional) fit, computed here rather than with getBoundsZoom:
+      // that clamps to the current minZoom (so one bad fit would stick) and,
+      // given a map smaller than its padding, returns the max zoom. During page
+      // load the map is briefly a sliver (e.g. 390x46); skip until it's real.
+      const room = size.subtract(topLeft).subtract(bottomRight);
+      if (room.x < MIN_ROOM || room.y < MIN_ROOM) return;
+      const span = map.project(us.getSouthEast(), 0).subtract(map.project(us.getNorthWest(), 0));
+      const zoom = Math.min(MAX_ZOOM, Math.max(0, Math.log2(Math.min(room.x / span.x, room.y / span.y))));
       const snap = map.options.zoomSnap;
-      map.options.zoomSnap = 0;
-      const zoom = map.getBoundsZoom(us, false, topLeft.add(bottomRight));
-      map.options.zoomSnap = snap;
 
       // The view at that zoom with the US inside the padded area: its centre is
       // the US centre shifted by half the padding difference.
@@ -56,18 +62,20 @@ export function MapViewLimits() {
       );
 
       const atMinZoom = map.getZoom() <= map.getMinZoom() + 0.01;
+      // Unsnapped throughout: setView, and setMinZoom when it lifts the current
+      // zoom up to the new minimum, would round the fractional zoom up to the
+      // next whole level, cropping the US and losing the "at min zoom" state.
+      map.options.zoomSnap = 0;
       map.options.maxBoundsViscosity = 1;
       map.setMinZoom(zoom);
       map.setMaxBounds(view);
       if (!fitted || atMinZoom) {
-        // Unsnapped, or setView rounds the fractional zoom up and crops the US.
-        map.options.zoomSnap = 0;
         map.setView(map.unproject(centre, zoom), zoom, { animate: false });
-        map.options.zoomSnap = snap;
         fitted = true;
       } else {
         map.panInsideBounds(view, { animate: false });
       }
+      map.options.zoomSnap = snap;
     };
 
     apply();

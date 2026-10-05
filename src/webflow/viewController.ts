@@ -1,3 +1,4 @@
+import { attachSheetDrag } from './sheetDrag';
 import { nextSnapOnTap } from './sheetSnap';
 import { DEFAULT_STATE, applyClasses, syncControls, type ViewState } from './viewState';
 
@@ -32,6 +33,7 @@ export function initViewController(
   const matchMedia = options.matchMedia ?? ((query: string) => window.matchMedia(query));
   const desktop = matchMedia(DESKTOP_QUERY);
   const sheet = root.querySelector<HTMLElement>(SHEET_SELECTOR);
+  const handle = root.querySelector<HTMLElement>(HANDLE_SELECTOR);
 
   let state: ViewState = { ...DEFAULT_STATE };
 
@@ -87,7 +89,19 @@ export function initViewController(
     activate(control);
   };
 
+  const drag =
+    sheet && handle
+      ? attachSheetDrag({
+          sheet,
+          handle,
+          isEnabled: () => !desktop.matches,
+          getSnap: () => state.sheet,
+          onSnap: (snap) => update({ sheet: snap }),
+        })
+      : null;
+
   const clearDrag = () => {
+    drag?.cancel();
     if (!sheet) return;
     sheet.style.transform = '';
     sheet.classList.remove(DRAGGING_CLASS);
@@ -110,6 +124,7 @@ export function initViewController(
       document.removeEventListener('click', onClick);
       document.removeEventListener('keydown', onKeyDown);
       desktop.removeEventListener('change', onBreakpoint);
+      drag?.destroy();
     },
   };
 }

@@ -266,7 +266,7 @@ describe('cm:select', () => {
     expect(scrollSpy).not.toHaveBeenCalled();
   });
 
-  it('scrolls the sheet scroller by the card offset, not the explorer', () => {
+  it('scrolls the sheet scroller by the card offset minus the sticky header, not the explorer', () => {
     const root = mountDom();
     const sheet = document.querySelector<HTMLElement>('[data-cm-sheet]')!;
     const scroller = document.createElement('div');
@@ -275,7 +275,11 @@ describe('cm:select', () => {
     sheet.appendChild(scroller);
     scroller.scrollTop = 40;
     const card = document.querySelector<HTMLElement>('[data-cm-item]')!;
+    const header = document.createElement('div');
+    header.className = 'map-explorer_header';
+    scroller.prepend(header);
     scroller.getBoundingClientRect = () => ({ top: 100 }) as DOMRect;
+    header.getBoundingClientRect = () => ({ top: 100, height: 50 }) as DOMRect;
     card.getBoundingClientRect = () => ({ top: 260 }) as DOMRect;
     controller = initViewController(root, {
       matchMedia: fakeMatchMedia(false).matchMedia,
@@ -283,7 +287,7 @@ describe('cm:select', () => {
     });
     key('[data-cm-sheet-handle]', 'Enter');
     select('alpha');
-    expect(scrollToSpy).toHaveBeenCalledWith({ top: 200, behavior: 'auto' });
+    expect(scrollToSpy).toHaveBeenCalledWith({ top: 150, behavior: 'auto' });
     expect(scrollSpy).not.toHaveBeenCalled();
   });
 

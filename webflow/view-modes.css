@@ -272,8 +272,19 @@
     height: 3px;
     background: #898989;
   }
-  /* Full: the chips overlay the top of the sheet below the handle. */
-  .map-explorer.is-sheet-full .map-explorer_header { margin-top: 44px; }
+  /* Full: the chips overlay the top of the sheet below the handle, so the scroller (and with
+     it the sticky header) starts below them. */
+  .map-explorer.is-sheet-full .map-explorer_scroll { margin-top: 44px; }
+  /* The heading row stays put; only the cards scroll under it. The gap below it is padding
+     (not margin) so it is painted and cards do not show through. Mobile only. */
+  .map-explorer_header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #383737;
+    margin-bottom: 0;
+    padding-bottom: 1.5rem;
+  }
   .projects_section .map-explorer_title { color: #f6f2ee; font-size: 20px; text-transform: uppercase; }
 
   /* The list scrolls at half and full; at its end the scroll chains to the page

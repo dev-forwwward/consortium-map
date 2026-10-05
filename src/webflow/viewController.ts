@@ -148,8 +148,14 @@ export function initViewController(
     // On mobile scrollIntoView would also scroll `.map-explorer` (the sheet
     // overflows it), so drive the sheet's own scroller directly.
     const scroller = sheet.querySelector<HTMLElement>('.map-explorer_scroll') ?? sheet;
+    // The heading row is sticky at the top of the scroller: keep the card below it.
+    const headerH =
+      scroller.querySelector<HTMLElement>('.map-explorer_header')?.getBoundingClientRect().height ?? 0;
     const top =
-      card.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+      card.getBoundingClientRect().top -
+      scroller.getBoundingClientRect().top +
+      scroller.scrollTop -
+      headerH;
     scroller.scrollTo({ top, behavior });
   };
 

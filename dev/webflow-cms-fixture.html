@@ -24,7 +24,8 @@
       .filter_option { display: inline-flex; cursor: pointer; opacity: 0.5; transition: opacity 200ms; }
       .filter_option.is-list-active { opacity: 1; }
       .filter_radio { position: absolute; width: 1px; height: 1px; opacity: 0; margin: 0; }
-      .map-explorer { display: flex; height: 80vh; margin: 0 24px 24px; background: #0e0f11; }
+      .padding-global { padding: 0 24px; }
+      .map-explorer { display: flex; height: 80vh; margin: 0 0 24px; background: #0e0f11; }
       .map-explorer_list { width: 30rem; flex: none; overflow-y: auto; padding: 2rem 1rem; }
       .map-explorer_title { margin-bottom: 1.5rem; font-size: 1.5rem; letter-spacing: 0.08em; text-transform: uppercase; }
       .map-explorer_map { flex: 1; min-width: 0; position: relative; }
@@ -49,12 +50,12 @@
       /* Fake fixed site nav (mobile only, so the desktop fixture is unchanged). */
       .navbar-wrapper { display: none; }
       @media (max-width: 991px) {
-        .navbar-wrapper { display: flex; align-items: center; position: fixed; top: 0; left: 0; right: 0; height: 70px; padding: 0 20px; background: #383737; color: #f6f2ee; z-index: 100; box-sizing: border-box; }
+        .navbar-wrapper { display: flex; align-items: center; position: fixed; top: 0; left: 0; right: 0; height: 61px; padding: 0 20px; background: #383737; color: #f6f2ee; z-index: 100; box-sizing: border-box; }
         .navbar-logo { font-family: monospace; letter-spacing: 0.2em; }
         /* The page reserves the nav height above the explorer; --cm-explorer-top is
            the explorer's natural distance from the page top (measured: explorer.getBoundingClientRect().top + scrollY). */
-        .projects_section { padding-top: 70px; }
-        :root { --cm-explorer-top: 70px; }
+        .projects_section { padding-top: 61px; }
+        :root { --cm-explorer-top: 61px; }
         .map-explorer { margin-left: 0; margin-right: 0; margin-bottom: 0; }
       }
       .map-view-toggle { gap: 4px; padding: 4px; background: #e8e4dc; }
@@ -378,6 +379,8 @@
     </div>
     </div>
     </section>
+    <section class="next-section" style="height: 1200px; padding: 48px 24px; background: #3a3a3a;"><h2>Next section</h2></section>
+    <footer style="height: 300px; padding: 48px 24px; background: #111;">Footer</footer>
     <script>
       // Stand-in for webflow.js, which every published Webflow page loads.
       // Finsweet Attributes queues its init with window.Webflow.push(fn) and

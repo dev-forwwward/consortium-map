@@ -74,12 +74,31 @@
     right: 1rem;
     z-index: 10;
   }
+  /* The pill lives inside the map canvas: bottom centre of the map column.
+     --cm-list-w = the list column's outer width (fixture: 30rem + 2rem padding = 32rem). */
+  .projects_section .container-huge { position: relative; }
   .map-view-toggle {
-    position: fixed;
-    left: 50%;
+    position: absolute;
+    left: calc(var(--cm-list-w, 32rem) + (100% - var(--cm-list-w, 32rem)) / 2);
     bottom: 1rem;
     z-index: 50;
     transform: translateX(-50%);
+  }
+  /* Expanded map: centred on the full explorer width. */
+  .projects_section .container-huge:has(.map-explorer.is-map-expanded) .map-view-toggle { left: 50%; }
+  /* Portfolio: no map, so the pill sticks to the viewport bottom while the section is in view. */
+  .projects_section .container-huge:has(.map-explorer.is-portfolio) {
+    display: flex;
+    flex-direction: column;
+  }
+  .projects_section .container-huge:has(.map-explorer.is-portfolio) .map-view-toggle {
+    position: sticky;
+    left: auto;
+    bottom: 1rem;
+    order: 2;
+    align-self: center;
+    transform: none;
+    margin-bottom: 1rem;
   }
 
   /* Expanded: list out, map takes the full width. */
@@ -136,7 +155,7 @@
   /* Filter chips float over the top of the map; they take no space. */
   .projects_section .container-large.padding-xhuge {
     position: absolute;
-    top: var(--cm-chips-top, 92px);
+    top: calc(var(--cm-chips-top, 83px) - var(--cm-nav-h, 61px));
     left: 0;
     right: 0;
     z-index: 30;
@@ -197,16 +216,16 @@
     display: block;
     /* --cm-explorer-top = the explorer's natural distance from the top of the
        page (everything in normal flow above it: nav spacer, section padding).
-       The negative margin cancels it so the map starts at y=0, under the nav. */
-    height: 100svh;
-    margin-top: calc(-1 * var(--cm-explorer-top, 0px));
+       The margin cancels it and adds the nav height so the map starts just below the nav. */
+    height: calc(100svh - var(--cm-nav-h, 61px));
+    margin-top: calc(var(--cm-nav-h, 61px) - var(--cm-explorer-top, 0px));
     overflow: hidden;
     overflow: clip; /* never a scroll container; only .map-explorer_scroll scrolls */
   }
   .map-explorer_map { position: absolute; inset: 0; }
   .map-expand-button {
     position: absolute;
-    top: calc(var(--cm-chips-top, 92px) + 29px);
+    top: calc(var(--cm-chips-top, 83px) - var(--cm-nav-h, 61px) + 29px);
     right: 23px;
     z-index: 10;
   }
@@ -216,7 +235,7 @@
 
   [data-cm-sheet] {
     position: absolute;
-    top: var(--cm-nav-h, 70px);
+    top: 0;
     bottom: 0;
     left: 0;
     right: 0;
@@ -227,7 +246,7 @@
     flex-direction: column;
     overflow: hidden;
     padding-top: 0;
-    touch-action: none;
+    touch-action: auto; /* only the handle drags the sheet; the list scrolls and chains to the page */
     transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   [data-cm-sheet].is-sheet-dragging { transition: none; }
@@ -235,7 +254,7 @@
     transform: translateY(calc(100% - var(--cm-sheet-peek)));
   }
   .map-explorer.is-sheet-half [data-cm-sheet] { transform: translateY(50%); }
-  .map-explorer.is-sheet-full [data-cm-sheet] { transform: translateY(0); touch-action: auto; }
+  .map-explorer.is-sheet-full [data-cm-sheet] { transform: translateY(0); }
 
   .map-explorer_sheet-handle {
     display: flex;
@@ -253,13 +272,14 @@
   .map-explorer.is-sheet-full .map-explorer_header { margin-top: 44px; }
   .projects_section .map-explorer_title { color: #f6f2ee; font-size: 20px; text-transform: uppercase; }
 
-  .map-explorer_scroll { flex: 1; min-height: 0; overflow: hidden; }
-  /* At half the lower part of the sheet is off-screen; pad so any card can
-     still be scrolled into the visible half. */
-  .map-explorer.is-sheet-half .map-explorer_scroll {
-    padding-bottom: calc((100svh - var(--cm-nav-h, 70px)) / 2);
-  }
-  .map-explorer.is-sheet-full .map-explorer_scroll { overflow-y: auto; touch-action: pan-y; }
+  /* The list scrolls at half and full; at its end the scroll chains to the page
+     (default overscroll-behavior; .map-explorer is overflow:clip, not a scroller). */
+  .map-explorer_scroll { flex: 1; min-height: 0; overflow: hidden; touch-action: pan-y; }
+  .map-explorer.is-sheet-half .map-explorer_scroll,
+  .map-explorer.is-sheet-full .map-explorer_scroll { overflow-y: auto; }
+  /* At half the lower part of the sheet is off-screen: size the scroller to the visible half
+     (explorer height / 2 minus the handle; not a % of the sheet, whose Designer padding skews it). */
+  .map-explorer.is-sheet-half .map-explorer_scroll { flex: none; height: calc((100svh - var(--cm-nav-h, 61px)) / 2 - var(--cm-handle-h, 27px)); }
 
   .layout-toggle { display: flex; }
   .map-explorer.is-sheet-peek .layout-toggle { visibility: hidden; }

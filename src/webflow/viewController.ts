@@ -37,6 +37,11 @@ export function initViewController(
   const prefersReducedMotion =
     options.prefersReducedMotion ??
     (() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  if (root.dataset.cmViewInit === 'true') {
+    console.warn('initViewController: already initialised on this element; ignoring.');
+    return { getState: () => ({ ...DEFAULT_STATE }), destroy() {} };
+  }
+  root.dataset.cmViewInit = 'true';
   const desktop = matchMedia(DESKTOP_QUERY);
   const sheet = root.querySelector<HTMLElement>(SHEET_SELECTOR);
   const handle = root.querySelector<HTMLElement>(HANDLE_SELECTOR);
@@ -75,16 +80,21 @@ export function initViewController(
 
   const onClick = (event: MouseEvent) => {
     const control = (event.target as Element | null)?.closest?.(CONTROL_SELECTOR);
-    if (control) activate(control);
+    if (!control) return;
+    // Link Blocks would otherwise jump to their href (usually "#").
+    if (control instanceof HTMLAnchorElement) event.preventDefault();
+    activate(control);
   };
 
   // Native <button>s already turn Enter/Space into a click; Webflow Divs and
   // Link Blocks carrying role="button" don't.
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
+    if (event.repeat) return;
     const target = event.target as Element | null;
     const handle = target?.closest?.(HANDLE_SELECTOR);
     if (handle) {
+      if (desktop.matches) return;
       event.preventDefault();
       update({ sheet: nextSnapOnTap(state.sheet) });
       return;
@@ -120,7 +130,17 @@ export function initViewController(
   };
 
   const scrollToCard = (card: HTMLElement) => {
-    card.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'nearest' });
+    const behavior = prefersReducedMotion() ? 'auto' : 'smooth';
+    if (desktop.matches || !sheet) {
+      card.scrollIntoView({ behavior, block: 'nearest' });
+      return;
+    }
+    // On mobile scrollIntoView would also scroll `.map-explorer` (the sheet
+    // overflows it), so drive the sheet's own scroller directly.
+    const scroller = sheet.querySelector<HTMLElement>('.map-explorer_scroll') ?? sheet;
+    const top =
+      card.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+    scroller.scrollTo({ top, behavior });
   };
 
   // Two frames: the first applies the class change, the second runs after
@@ -179,6 +199,7 @@ export function initViewController(
       document.removeEventListener('keydown', onKeyDown);
       desktop.removeEventListener('change', onBreakpoint);
       drag?.destroy();
+      delete root.dataset.cmViewInit;
     },
   };
 }

@@ -105,10 +105,15 @@ export function attachSheetDrag(options: SheetDragOptions): SheetDrag {
     if (event.pointerId === pointerId) reset();
   };
 
+  const onLostPointerCapture = (event: PointerEvent) => {
+    if (event.pointerId === pointerId) reset();
+  };
+
   handle.addEventListener('pointerdown', onPointerDown);
   handle.addEventListener('pointermove', onPointerMove);
   handle.addEventListener('pointerup', onPointerUp);
   handle.addEventListener('pointercancel', onPointerCancel);
+  handle.addEventListener('lostpointercapture', onLostPointerCapture);
 
   return {
     cancel: reset,
@@ -118,6 +123,7 @@ export function attachSheetDrag(options: SheetDragOptions): SheetDrag {
       handle.removeEventListener('pointermove', onPointerMove);
       handle.removeEventListener('pointerup', onPointerUp);
       handle.removeEventListener('pointercancel', onPointerCancel);
+      handle.removeEventListener('lostpointercapture', onLostPointerCapture);
     },
   };
 }

@@ -131,7 +131,7 @@ To redeploy: rebuild (`npm run build:embed`) and push the contents of `dist-embe
 - `vite.embed.config.ts` sets `define: { 'process.env.NODE_ENV': JSON.stringify('production') }`. Vite's library mode does *not* auto-replace this the way normal app builds do — omit it and the bundle crashes at runtime with `process is not defined`.
 - Fonts are self-hosted, not loaded from Google Fonts (avoids a third-party network call from a script running on someone else's domain). `scripts/copy-fonts.mjs` copies just the latin-subset `.woff2` files from the installed `@fontsource*` packages into `public/fonts/`, and `src/embed.css` hand-writes the `@font-face` rules. Do **not** `@import` a fontsource package's own CSS directly in the embed build — Vite library mode force-inlines every asset referenced via CSS `url()` as base64 regardless of `assetsInlineLimit`, which previously ballooned the CSS to 1.2MB.
 - `src/embed.tsx` hardcodes `CSS_URL` as a constant pointing at the deployed CSS file — it's not resolved via `import.meta.url` (unreliable under Rollup's `iife` output). If the Vercel project/domain ever changes, update this constant and rebuild.
-- The detail modal is keyed by `detailOpenSeq` (a counter in `MapExplorerProvider`, incremented on every open) rather than by location id, so reopening the *same* marker twice always mounts a fresh `<dialog>`. This sidesteps a documented Chromium/Edge bug where a `<dialog>` re-opened (not freshly created) inside a shadow root can become unclickable.
+- (Standalone app only; the embed has no modal.) The detail modal is keyed by `detailOpenSeq` (a counter in `MapExplorerProvider`, incremented on every open) rather than by location id, so reopening the *same* marker twice always mounts a fresh `<dialog>`. This sidesteps a documented Chromium/Edge bug where a `<dialog>` re-opened (not freshly created) inside a shadow root can become unclickable.
 - `dev/webflow-cms-fixture.html` stands in for the Webflow projects page: a fake Collection List with the `data-cm-*` attributes, a category filter, the view-mode controls and sheet, and one deliberately broken item. Run `npm run build:embed`, serve the repo root (`python3 -m http.server 4321`), and open `http://localhost:4321/dev/webflow-cms-fixture.html`. The mount's `data-css-url` points the embed at the local CSS instead of the deployed one.
 - Unit tests (`npm test`, Vitest) cover the sheet snap maths, the state → class mapping and the view controller (jsdom). Pointer dragging is checked by hand in the fixture.
 - `dev/webflow-fixture.html` is a throwaway local test page with deliberately hostile CSS (clashing `.flex`/`.relative`/`.border-b` class names, loud colors) for manually verifying shadow-DOM isolation in both directions before shipping a change. Serve it with `npx serve dev` and point its `<script src>` at either the live Vercel URL or a local `dist-embed/` server.
@@ -221,7 +221,9 @@ Controls are found by attribute, anywhere on the page:
 | `data-cm-sheet` | The list column, which is the sheet on mobile |
 | `data-cm-sheet-handle` | Sheet drag handle (drag, tap, or Enter/Space) |
 
-The active control gets `is-active` and `aria-pressed="true"`.
+The active control gets `is-active` and `aria-pressed="true"` (on mobile the expand button gets neither).
+
+On mobile `.map-explorer` uses `overflow: clip` so it can never scroll; only the sheet's `.map-explorer_scroll` scrolls (selection scrolls it directly).
 
 On `cm:select`, the controller brings the list back if the map is expanded (desktop) or opens the sheet to half if it is at peek (mobile), then scrolls the card into view.
 

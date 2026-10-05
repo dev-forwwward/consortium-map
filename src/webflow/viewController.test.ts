@@ -169,6 +169,7 @@ describe('breakpoint change', () => {
 
 describe('cm:select', () => {
   let scrollSpy: ReturnType<typeof vi.fn>;
+  let scrollToSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.useFakeTimers({
@@ -176,6 +177,8 @@ describe('cm:select', () => {
     });
     scrollSpy = vi.fn();
     Element.prototype.scrollIntoView = scrollSpy as unknown as Element['scrollIntoView'];
+    scrollToSpy = vi.fn();
+    Element.prototype.scrollTo = scrollToSpy as unknown as Element['scrollTo'];
   });
 
   afterEach(() => {
@@ -227,10 +230,12 @@ describe('cm:select', () => {
     const end = new Event('transitionend', { bubbles: true }) as TransitionEvent;
     Object.defineProperty(end, 'propertyName', { value: 'transform' });
     sheet.dispatchEvent(end);
-    expect(scrollSpy).toHaveBeenCalledTimes(1);
+    expect(scrollToSpy).toHaveBeenCalledTimes(1);
+    expect(scrollToSpy).toHaveBeenCalledWith({ top: expect.any(Number), behavior: 'smooth' });
+    expect(scrollSpy).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(1000);
-    expect(scrollSpy).toHaveBeenCalledTimes(1);
+    expect(scrollToSpy).toHaveBeenCalledTimes(1);
   });
 
   it('falls back when transitionend never fires', () => {
@@ -241,9 +246,10 @@ describe('cm:select', () => {
     });
     select('alpha');
     vi.advanceTimersByTime(449);
-    expect(scrollSpy).not.toHaveBeenCalled();
+    expect(scrollToSpy).not.toHaveBeenCalled();
     vi.advanceTimersByTime(1);
-    expect(scrollSpy).toHaveBeenCalledTimes(1);
+    expect(scrollToSpy).toHaveBeenCalledTimes(1);
+    expect(scrollSpy).not.toHaveBeenCalled();
   });
 
   it('keeps the sheet where it is when already open', () => {
@@ -256,7 +262,29 @@ describe('cm:select', () => {
     key('[data-cm-sheet-handle]', 'Enter');
     select('alpha');
     expect(root.classList.contains('is-sheet-full')).toBe(true);
-    expect(scrollSpy).toHaveBeenCalledTimes(1);
+    expect(scrollToSpy).toHaveBeenCalledTimes(1);
+    expect(scrollSpy).not.toHaveBeenCalled();
+  });
+
+  it('scrolls the sheet scroller by the card offset, not the explorer', () => {
+    const root = mountDom();
+    const sheet = document.querySelector<HTMLElement>('[data-cm-sheet]')!;
+    const scroller = document.createElement('div');
+    scroller.className = 'map-explorer_scroll';
+    while (sheet.childNodes.length) scroller.appendChild(sheet.firstChild!);
+    sheet.appendChild(scroller);
+    scroller.scrollTop = 40;
+    const card = document.querySelector<HTMLElement>('[data-cm-item]')!;
+    scroller.getBoundingClientRect = () => ({ top: 100 }) as DOMRect;
+    card.getBoundingClientRect = () => ({ top: 260 }) as DOMRect;
+    controller = initViewController(root, {
+      matchMedia: fakeMatchMedia(false).matchMedia,
+      prefersReducedMotion: () => true,
+    });
+    key('[data-cm-sheet-handle]', 'Enter');
+    select('alpha');
+    expect(scrollToSpy).toHaveBeenCalledWith({ top: 200, behavior: 'auto' });
+    expect(scrollSpy).not.toHaveBeenCalled();
   });
 
   it('ignores unknown ids', () => {
@@ -276,5 +304,90 @@ describe('cm:select', () => {
     select('alpha');
     vi.advanceTimersByTime(1000);
     expect(scrollSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('keyboard on non-button controls', () => {
+  const press = (el: Element, keyName: string) => {
+    const event = new KeyboardEvent('keydown', { key: keyName, bubbles: true, cancelable: true });
+    el.dispatchEvent(event);
+    return event;
+  };
+
+  it.each(['Enter', ' '])('activates div[role=button] controls with %j', (keyName) => {
+    const root = mountDom();
+    document.body.insertAdjacentHTML(
+      'beforeend',
+      `<div role="button" tabindex="0" id="v" data-cm-view="portfolio"></div>
+       <div role="button" tabindex="0" id="l" data-cm-layout="list"></div>
+       <div role="button" tabindex="0" id="e" data-cm-expand></div>`,
+    );
+    controller = initViewController(root, { matchMedia: fakeMatchMedia(true).matchMedia });
+    expect(press(document.getElementById('v')!, keyName).defaultPrevented).toBe(true);
+    expect(controller.getState().view).toBe('portfolio');
+    expect(press(document.getElementById('l')!, keyName).defaultPrevented).toBe(true);
+    expect(controller.getState().layout).toBe('list');
+    controller.destroy();
+    controller = initViewController(root, { matchMedia: fakeMatchMedia(true).matchMedia });
+    expect(press(document.getElementById('e')!, keyName).defaultPrevented).toBe(true);
+    expect(controller.getState().mapSize).toBe('expanded');
+  });
+
+  it('leaves a native <button> to its own click', () => {
+    const root = mountDom();
+    controller = initViewController(root, { matchMedia: fakeMatchMedia(true).matchMedia });
+    const event = press(document.querySelector('button[data-cm-expand]')!, 'Enter');
+    expect(event.defaultPrevented).toBe(false);
+    expect(controller.getState().mapSize).toBe('split');
+  });
+
+  it('ignores repeated keydown on the handle', () => {
+    const root = mountDom();
+    controller = initViewController(root, { matchMedia: fakeMatchMedia(false).matchMedia });
+    const handle = document.querySelector('[data-cm-sheet-handle]')!;
+    handle.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', repeat: true, bubbles: true, cancelable: true }),
+    );
+    expect(controller.getState().sheet).toBe('peek');
+  });
+
+  it('does not change the sheet from the handle on desktop', () => {
+    const root = mountDom();
+    controller = initViewController(root, { matchMedia: fakeMatchMedia(true).matchMedia });
+    const event = press(document.querySelector('[data-cm-sheet-handle]')!, 'Enter');
+    expect(event.defaultPrevented).toBe(false);
+    expect(controller.getState().sheet).toBe('peek');
+    expect(root.className).toBe('map-explorer');
+  });
+});
+
+describe('link controls', () => {
+  it('prevents the jump to # on <a> controls', () => {
+    const root = mountDom();
+    document.body.insertAdjacentHTML('beforeend', '<a href="#" id="a" data-cm-view="portfolio">P</a>');
+    controller = initViewController(root, { matchMedia: fakeMatchMedia(true).matchMedia });
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+    document.getElementById('a')!.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
+    expect(controller.getState().view).toBe('portfolio');
+  });
+});
+
+describe('double init', () => {
+  it('returns a no-op controller the second time and does not double-toggle', () => {
+    const root = mountDom();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const media = fakeMatchMedia(true).matchMedia;
+    controller = initViewController(root, { matchMedia: media });
+    const second = initViewController(root, { matchMedia: media });
+    click('[data-cm-expand]');
+    expect(root.classList.contains('is-map-expanded')).toBe(true);
+    expect(warn).toHaveBeenCalledTimes(1);
+    second.destroy();
+    click('[data-cm-expand]');
+    expect(root.classList.contains('is-map-expanded')).toBe(false);
+    controller.destroy();
+    expect(root.dataset.cmViewInit).toBeUndefined();
+    warn.mockRestore();
   });
 });

@@ -15,3 +15,10 @@ export const BRAND_ORANGE = '#ff5a1f';
 export const DEFAULT_CENTER: [number, number] = [35.6, -84.2];
 export const DEFAULT_ZOOM = 6;
 export const MAX_CLUSTER_RADIUS = 60;
+
+// Pan/zoom limits, [[south, west], [north, east]]. Desktop: northern Canada to
+// northern South America, Alaska panhandle to the mid-Atlantic. Mobile (tall,
+// narrow map, partly under the sheet): the Arctic islands to mid-South America.
+export const MAP_LIMIT_BOUNDS: [[number, number], [number, number]] = [[-8, -142], [72, -45]];
+export const MOBILE_MAP_LIMIT_BOUNDS: [[number, number], [number, number]] = [[-40, -141], [77, -57]];
+export const DESKTOP_MAP_QUERY = '(min-width: 992px)';

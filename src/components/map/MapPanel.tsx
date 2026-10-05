@@ -5,6 +5,7 @@ import { TILE_ATTRIBUTION, TILE_URL, DEFAULT_CENTER, DEFAULT_ZOOM } from '../../
 import { ClusterLayer } from './ClusterLayer';
 import { MapBoundsSync } from './MapBoundsSync';
 import { MapInvalidateOnShow } from './MapInvalidateOnShow';
+import { MapViewLimits } from './MapViewLimits';
 import { MapErrorBoundary } from './MapErrorBoundary';
 import { MapErrorState } from '../states/MapErrorState';
 import { probeTileSource } from '../../lib/tileHealth';
@@ -69,6 +70,7 @@ export function MapPanel({
             <ClusterLayer selectOnly={selectOnly} />
             {syncBounds ? <MapBoundsSync /> : null}
             <MapInvalidateOnShow />
+            <MapViewLimits />
           </MapContainer>
         </MapErrorBoundary>
       )}

@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { SELECT_EVENT } from '../lib/cmsSource';
 import { DESKTOP_QUERY, initViewController, type ViewController } from './viewController';
 
 function fakeMatchMedia(initial: boolean) {
@@ -163,5 +164,117 @@ describe('breakpoint change', () => {
 
     media.set(false);
     expect(root.className).toBe('map-explorer is-sheet-peek is-list');
+  });
+});
+
+describe('cm:select', () => {
+  let scrollSpy: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout', 'requestAnimationFrame', 'cancelAnimationFrame'],
+    });
+    scrollSpy = vi.fn();
+    Element.prototype.scrollIntoView = scrollSpy as unknown as Element['scrollIntoView'];
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const select = (id: string) =>
+    document.dispatchEvent(new CustomEvent(SELECT_EVENT, { detail: { id } }));
+
+  it('returns to split and scrolls to the card when expanded', () => {
+    const root = mountDom();
+    controller = initViewController(root, {
+      matchMedia: fakeMatchMedia(true).matchMedia,
+      prefersReducedMotion: () => false,
+    });
+    click('[data-cm-expand]');
+
+    select('alpha');
+    expect(root.classList.contains('is-map-expanded')).toBe(false);
+    expect(scrollSpy).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(50);
+    expect(scrollSpy).toHaveBeenCalledTimes(1);
+    expect(scrollSpy).toHaveBeenCalledWith({ behavior: 'smooth', block: 'nearest' });
+  });
+
+  it('scrolls straight away in split view', () => {
+    const root = mountDom();
+    controller = initViewController(root, {
+      matchMedia: fakeMatchMedia(true).matchMedia,
+      prefersReducedMotion: () => true,
+    });
+    select('alpha');
+    expect(scrollSpy).toHaveBeenCalledWith({ behavior: 'auto', block: 'nearest' });
+  });
+
+  it('opens the sheet to half on mobile, then scrolls after the transition', () => {
+    const root = mountDom();
+    controller = initViewController(root, {
+      matchMedia: fakeMatchMedia(false).matchMedia,
+      prefersReducedMotion: () => false,
+    });
+    const sheet = document.querySelector<HTMLElement>('[data-cm-sheet]')!;
+
+    select('alpha');
+    expect(root.classList.contains('is-sheet-half')).toBe(true);
+    expect(scrollSpy).not.toHaveBeenCalled();
+
+    const end = new Event('transitionend', { bubbles: true }) as TransitionEvent;
+    Object.defineProperty(end, 'propertyName', { value: 'transform' });
+    sheet.dispatchEvent(end);
+    expect(scrollSpy).toHaveBeenCalledTimes(1);
+
+    vi.advanceTimersByTime(1000);
+    expect(scrollSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back when transitionend never fires', () => {
+    const root = mountDom();
+    controller = initViewController(root, {
+      matchMedia: fakeMatchMedia(false).matchMedia,
+      prefersReducedMotion: () => false,
+    });
+    select('alpha');
+    vi.advanceTimersByTime(449);
+    expect(scrollSpy).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(scrollSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the sheet where it is when already open', () => {
+    const root = mountDom();
+    controller = initViewController(root, {
+      matchMedia: fakeMatchMedia(false).matchMedia,
+      prefersReducedMotion: () => false,
+    });
+    key('[data-cm-sheet-handle]', 'Enter');
+    key('[data-cm-sheet-handle]', 'Enter');
+    select('alpha');
+    expect(root.classList.contains('is-sheet-full')).toBe(true);
+    expect(scrollSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores unknown ids', () => {
+    const root = mountDom();
+    controller = initViewController(root, { matchMedia: fakeMatchMedia(true).matchMedia });
+    click('[data-cm-expand]');
+    expect(() => select('nope')).not.toThrow();
+    expect(root.classList.contains('is-map-expanded')).toBe(true);
+    vi.advanceTimersByTime(1000);
+    expect(scrollSpy).not.toHaveBeenCalled();
+  });
+
+  it('stops listening after destroy', () => {
+    const root = mountDom();
+    controller = initViewController(root, { matchMedia: fakeMatchMedia(true).matchMedia });
+    controller.destroy();
+    select('alpha');
+    vi.advanceTimersByTime(1000);
+    expect(scrollSpy).not.toHaveBeenCalled();
   });
 });

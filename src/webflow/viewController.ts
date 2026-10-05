@@ -1,3 +1,4 @@
+import { SELECT_EVENT, findCmsItem } from '../lib/cmsSource';
 import { attachSheetDrag } from './sheetDrag';
 import { nextSnapOnTap } from './sheetSnap';
 import { DEFAULT_STATE, applyClasses, syncControls, type ViewState } from './viewState';
@@ -8,6 +9,8 @@ const CONTROL_SELECTOR = '[data-cm-view], [data-cm-layout], [data-cm-expand]';
 const HANDLE_SELECTOR = '[data-cm-sheet-handle]';
 const SHEET_SELECTOR = '[data-cm-sheet]';
 const DRAGGING_CLASS = 'is-sheet-dragging';
+// Longer than the sheet's CSS transition, in case transitionend never fires.
+const SHEET_SETTLE_FALLBACK_MS = 450;
 
 export interface ViewControllerOptions {
   matchMedia?: (query: string) => MediaQueryList;
@@ -31,6 +34,9 @@ export function initViewController(
   options: ViewControllerOptions = {},
 ): ViewController {
   const matchMedia = options.matchMedia ?? ((query: string) => window.matchMedia(query));
+  const prefersReducedMotion =
+    options.prefersReducedMotion ??
+    (() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const desktop = matchMedia(DESKTOP_QUERY);
   const sheet = root.querySelector<HTMLElement>(SHEET_SELECTOR);
   const handle = root.querySelector<HTMLElement>(HANDLE_SELECTOR);
@@ -113,7 +119,54 @@ export function initViewController(
     render();
   };
 
+  const scrollToCard = (card: HTMLElement) => {
+    card.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'nearest' });
+  };
+
+  // Two frames: the first applies the class change, the second runs after
+  // layout, so the card has its final position.
+  const afterLayout = (callback: () => void) => {
+    requestAnimationFrame(() => requestAnimationFrame(callback));
+  };
+
+  const afterSheetSettles = (callback: () => void) => {
+    if (!sheet || prefersReducedMotion()) {
+      requestAnimationFrame(callback);
+      return;
+    }
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      sheet.removeEventListener('transitionend', onEnd);
+      clearTimeout(timer);
+      callback();
+    };
+    const onEnd = (event: TransitionEvent) => {
+      if (event.target === sheet && event.propertyName === 'transform') finish();
+    };
+    sheet.addEventListener('transitionend', onEnd);
+    const timer = setTimeout(finish, SHEET_SETTLE_FALLBACK_MS);
+  };
+
+  const onSelect = (event: Event) => {
+    const id = (event as CustomEvent<{ id?: string }>).detail?.id;
+    const card = id ? findCmsItem(id) : null;
+    if (!card) return;
+
+    if (desktop.matches && state.view === 'map' && state.mapSize === 'expanded') {
+      update({ mapSize: 'split' });
+      afterLayout(() => scrollToCard(card));
+    } else if (!desktop.matches && state.sheet === 'peek') {
+      update({ sheet: 'half' });
+      afterSheetSettles(() => scrollToCard(card));
+    } else {
+      scrollToCard(card);
+    }
+  };
+
   document.addEventListener('click', onClick);
+  document.addEventListener(SELECT_EVENT, onSelect);
   document.addEventListener('keydown', onKeyDown);
   desktop.addEventListener('change', onBreakpoint);
   render();
@@ -122,6 +175,7 @@ export function initViewController(
     getState: () => ({ ...state }),
     destroy() {
       document.removeEventListener('click', onClick);
+      document.removeEventListener(SELECT_EVENT, onSelect);
       document.removeEventListener('keydown', onKeyDown);
       desktop.removeEventListener('change', onBreakpoint);
       drag?.destroy();

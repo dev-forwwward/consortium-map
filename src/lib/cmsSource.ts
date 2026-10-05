@@ -12,6 +12,13 @@ export const ITEM_SELECTOR = '[data-cm-item]';
 export const ACTIVE_CLASS = 'is-cm-active';
 export const HOVER_CLASS = 'is-cm-hover';
 
+/**
+ * Dispatched on `document` by the embed when a marker is clicked, with
+ * `detail: { id }`. The page's view controller reveals and scrolls to the
+ * matching card.
+ */
+export const SELECT_EVENT = 'cm:select';
+
 export function findCmsList(root: ParentNode = document): HTMLElement | null {
   return root.querySelector<HTMLElement>(LIST_SELECTOR);
 }

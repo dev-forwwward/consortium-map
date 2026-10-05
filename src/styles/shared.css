@@ -14,6 +14,11 @@
   color: var(--color-fog) !important;
 }
 
+.leaflet-control-zoom {
+  /* Leaflet's default is block (a plain div.leaflet-bar); page CSS can override via the inherited custom property. */
+  display: var(--cm-zoom-display, block);
+}
+
 .leaflet-control-zoom a {
   background: var(--color-surface-raised) !important;
   color: var(--color-paper) !important;

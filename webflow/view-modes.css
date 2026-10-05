@@ -115,6 +115,15 @@
 @media (max-width: 991px) {
   .map-view-toggle { display: none; }
 
+  /* Legacy Designer tablet styles cap the list (max-height: 50vh) and size the map
+     (height: 70vh). Beat any single Designer class; the map is absolutely positioned. */
+  .map-explorer .map-explorer_list[data-cm-sheet] { max-height: none; min-height: 0; }
+  .map-explorer .map-explorer_map { height: auto; min-height: 0; max-height: none; }
+
+  /* Pinch-zoom only on mobile: hide the Leaflet zoom control (in the embed's Shadow DOM,
+     reached via an inherited custom property). */
+  .map-explorer { --cm-zoom-display: none; }
+
   /* Full-bleed map: the site nav (fixed) sits on top of it. */
   .projects_section .padding-global,
   .projects_section .container-huge {

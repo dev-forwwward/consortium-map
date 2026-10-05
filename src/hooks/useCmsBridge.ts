@@ -20,14 +20,16 @@ function setExclusiveClass(className: string, id: string | null) {
 
 /**
  * Links the Webflow Collection List (light DOM, outside the embed's shadow
- * root) to the map's selection/hover state, in both directions:
- *   card hover → marker highlight, card click → reveal marker;
+ * root) to the map's selection/hover state:
+ *   card hover → marker highlight;
  *   marker hover/select → HOVER_CLASS / ACTIVE_CLASS on the card, which the
  *   Webflow Designer styles.
+ * A card click is a plain link to the project page. Scrolling the selected
+ * card into view is the page's view controller's job (src/webflow), since it
+ * may first have to bring the list back.
  */
 export function useCmsBridge() {
-  const { locations, selectedLocationId, hoveredLocationId, selectLocation, setHovered } =
-    useMapExplorer();
+  const { locations, selectedLocationId, hoveredLocationId, setHovered } = useMapExplorer();
 
   useEffect(() => {
     const list = findCmsList();
@@ -47,24 +49,14 @@ export function useCmsBridge() {
       if (!item || item.contains(event.relatedTarget as Node | null)) return;
       setHovered(null);
     };
-    // A real link inside the card (e.g. to the project page) keeps its
-    // default behavior; anywhere else on the card reveals it on the map.
-    const handleClick = (event: MouseEvent) => {
-      const item = itemFrom(event.target);
-      if (!item || (event.target as Element).closest('a[href]')) return;
-      const id = getCmsItemId(item);
-      if (id) selectLocation(id);
-    };
 
     list.addEventListener('mouseover', handleOver);
     list.addEventListener('mouseout', handleOut);
-    list.addEventListener('click', handleClick);
     return () => {
       list.removeEventListener('mouseover', handleOver);
       list.removeEventListener('mouseout', handleOut);
-      list.removeEventListener('click', handleClick);
     };
-  }, [selectLocation, setHovered]);
+  }, [setHovered]);
 
   // `locations` is a dependency so classes are re-applied after the filter
   // re-renders items (Finsweet may swap in fresh nodes).
@@ -75,11 +67,4 @@ export function useCmsBridge() {
   useEffect(() => {
     setExclusiveClass(ACTIVE_CLASS, selectedLocationId);
   }, [selectedLocationId, locations]);
-
-  // Scroll only on selection change — not on every filter re-read, which
-  // would yank the page back to the active card.
-  useEffect(() => {
-    if (!selectedLocationId) return;
-    findCmsItem(selectedLocationId)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }, [selectedLocationId]);
 }

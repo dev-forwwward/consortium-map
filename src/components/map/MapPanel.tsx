@@ -13,8 +13,16 @@ import { probeTileSource } from '../../lib/tileHealth';
  * `syncBounds` narrows the list to the current viewport (the standalone
  * explorer). The Webflow embed turns it off: there the list is the CMS
  * Collection List, driven by the page's filter rather than the map.
+ * `selectOnly` makes marker clicks highlight the CMS card instead of opening
+ * the detail modal (see ClusterLayer).
  */
-export function MapPanel({ syncBounds = true }: { syncBounds?: boolean }) {
+export function MapPanel({
+  syncBounds = true,
+  selectOnly = false,
+}: {
+  syncBounds?: boolean;
+  selectOnly?: boolean;
+}) {
   const { mapReady, setMapReady, mapError, setMapError, mapInstanceKey, retryMap } =
     useMapExplorer();
 
@@ -58,7 +66,7 @@ export function MapPanel({ syncBounds = true }: { syncBounds?: boolean }) {
                 tileerror: () => setMapError('Map tiles failed to load. Check your connection and retry.'),
               }}
             />
-            <ClusterLayer />
+            <ClusterLayer selectOnly={selectOnly} />
             {syncBounds ? <MapBoundsSync /> : null}
             <MapInvalidateOnShow />
           </MapContainer>

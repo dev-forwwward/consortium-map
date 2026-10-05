@@ -5,6 +5,7 @@ import { useMap, useMapEvents } from 'react-leaflet';
 import { useMapExplorer } from '../../hooks/useMapExplorer';
 import { locationAriaLabel } from '../../lib/mapUtils';
 import { MAX_CLUSTER_RADIUS } from '../../lib/constants';
+import { SELECT_EVENT } from '../../lib/cmsSource';
 import { createClusterIcon, createIndividualIcon } from './markerIcons';
 
 // Cluster bubbles are re-created by the plugin on every zoom/spiderfy, so
@@ -27,7 +28,12 @@ function tagClusterElements(container: HTMLElement) {
   });
 }
 
-export function ClusterLayer() {
+/**
+ * `selectOnly` (the Webflow embed): a marker click selects the location and
+ * tells the page via SELECT_EVENT, which highlights and reveals the card.
+ * No detail modal. Off (the standalone explorer): a click opens the modal.
+ */
+export function ClusterLayer({ selectOnly = false }: { selectOnly?: boolean }) {
   const map = useMap();
   const { locations, selectedLocationId, hoveredLocationId, selectLocation, setHovered } =
     useMapExplorer();
@@ -85,7 +91,16 @@ export function ClusterLayer() {
         keyboard: true,
       });
 
-      marker.on('click', () => selectLocation(location.id, { openDetail: true }));
+      const activate = () => {
+        if (selectOnly) {
+          selectLocation(location.id);
+          document.dispatchEvent(new CustomEvent(SELECT_EVENT, { detail: { id: location.id } }));
+        } else {
+          selectLocation(location.id, { openDetail: true });
+        }
+      };
+
+      marker.on('click', activate);
       marker.on('mouseover', () => setHovered(location.id));
       marker.on('mouseout', () => setHovered(null));
       marker.on('add', () => {
@@ -93,11 +108,14 @@ export function ClusterLayer() {
         if (!el) return;
         el.setAttribute('role', 'button');
         el.setAttribute('tabindex', '0');
-        el.setAttribute('aria-label', `${locationAriaLabel(location)} — open details`);
+        el.setAttribute(
+          'aria-label',
+          `${locationAriaLabel(location)} — ${selectOnly ? 'show in project list' : 'open details'}`,
+        );
         el.addEventListener('keydown', (event) => {
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
-            selectLocation(location.id, { openDetail: true });
+            activate();
           }
         });
       });
@@ -108,7 +126,7 @@ export function ClusterLayer() {
 
     clusterGroup.addLayers(markers);
     requestAnimationFrame(tagClusters);
-  }, [locations, selectedLocationId, selectLocation, setHovered, tagClusters]);
+  }, [locations, selectedLocationId, selectLocation, setHovered, tagClusters, selectOnly]);
 
   // When selection changes, reveal the marker even if it's currently folded
   // into a cluster bubble, so the map never shows a mismatch with the list.

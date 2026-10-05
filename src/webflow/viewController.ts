@@ -8,6 +8,7 @@ export const DESKTOP_QUERY = '(min-width: 992px)';
 const CONTROL_SELECTOR = '[data-cm-view], [data-cm-layout], [data-cm-expand]';
 const HANDLE_SELECTOR = '[data-cm-sheet-handle]';
 const SHEET_SELECTOR = '[data-cm-sheet]';
+const LENIS_SELECTOR = '.map-explorer_scroll, .map-explorer_list';
 const DRAGGING_CLASS = 'is-sheet-dragging';
 // Longer than the sheet's CSS transition, in case transitionend never fires.
 const SHEET_SETTLE_FALLBACK_MS = 450;
@@ -45,6 +46,15 @@ export function initViewController(
   const desktop = matchMedia(DESKTOP_QUERY);
   const sheet = root.querySelector<HTMLElement>(SHEET_SELECTOR);
   const handle = root.querySelector<HTMLElement>(HANDLE_SELECTOR);
+
+  // The site's Lenis smooth scroll hijacks wheel events over any element not
+  // marked data-lenis-prevent, so the list scrollers must carry it.
+  const lenisAdded: HTMLElement[] = [];
+  root.querySelectorAll<HTMLElement>(LENIS_SELECTOR).forEach((el) => {
+    if (el.hasAttribute('data-lenis-prevent')) return;
+    el.setAttribute('data-lenis-prevent', '');
+    lenisAdded.push(el);
+  });
 
   let state: ViewState = { ...DEFAULT_STATE };
 
@@ -199,6 +209,7 @@ export function initViewController(
       document.removeEventListener('keydown', onKeyDown);
       desktop.removeEventListener('change', onBreakpoint);
       drag?.destroy();
+      lenisAdded.forEach((el) => el.removeAttribute('data-lenis-prevent'));
       delete root.dataset.cmViewInit;
     },
   };

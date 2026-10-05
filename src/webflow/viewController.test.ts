@@ -373,6 +373,25 @@ describe('link controls', () => {
   });
 });
 
+describe('Lenis prevent', () => {
+  it('marks both scrollers on init and on destroy removes only what it added', () => {
+    const root = mountDom();
+    root.querySelector('.map-explorer_list')!.insertAdjacentHTML(
+      'beforeend',
+      '<div class="map-explorer_scroll"></div><div class="map-explorer_scroll" hidden></div>',
+    );
+    const list = root.querySelector<HTMLElement>('.map-explorer_list')!;
+    const scroll = root.querySelector<HTMLElement>('.map-explorer_scroll')!;
+    list.setAttribute('data-lenis-prevent', '');
+    controller = initViewController(root, { matchMedia: fakeMatchMedia(false).matchMedia });
+    expect(list.hasAttribute('data-lenis-prevent')).toBe(true);
+    expect(scroll.hasAttribute('data-lenis-prevent')).toBe(true);
+    controller.destroy();
+    expect(scroll.hasAttribute('data-lenis-prevent')).toBe(false);
+    expect(list.hasAttribute('data-lenis-prevent')).toBe(true);
+  });
+});
+
 describe('double init', () => {
   it('returns a no-op controller the second time and does not double-toggle', () => {
     const root = mountDom();

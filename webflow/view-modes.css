@@ -1,8 +1,9 @@
 /*
  * Projects page view modes — Map/Portfolio, grid/list, expanded map,
  * mobile sheet. State-dependent rules only; base styles live in Webflow
- * Designer classes. Source of truth: paste this file verbatim into the
- * "View modes CSS" Embed on the Projects page (inside a <style> tag).
+ * Designer classes. Source of truth: this file. `npm run build:embed` copies it to
+ * dist-embed/consortium-map-v3-page.css, served from Vercel and linked from the
+ * Projects page's "View modes CSS" Embed (too big to paste: 10k char limit).
  * State classes are set on .map-explorer by src/webflow/viewController.ts.
  */
 
@@ -75,11 +76,11 @@
     z-index: 10;
   }
   /* The pill lives inside the map canvas: bottom centre of the map column.
-     --cm-list-w = the list column's outer width (fixture: 30rem + 2rem padding = 32rem). */
+     --cm-list-w = the list column's outer width (30rem on the real page). */
   .projects_section .container-huge { position: relative; }
   .map-view-toggle {
     position: absolute;
-    left: calc(var(--cm-list-w, 32rem) + (100% - var(--cm-list-w, 32rem)) / 2);
+    left: calc(var(--cm-list-w, 30rem) + (100% - var(--cm-list-w, 30rem)) / 2);
     bottom: 1rem;
     z-index: 50;
     transform: translateX(-50%);
@@ -98,7 +99,9 @@
     order: 2;
     align-self: center;
     transform: none;
-    margin-bottom: 1rem;
+    /* Overlap the explorer's bottom so the in-flow pill adds no height (no gap before the next section). */
+    margin-top: calc(-1 * (var(--cm-pill-h, 31px) + 1rem));
+    margin-bottom: 0;
   }
 
   /* Expanded: list out, map takes the full width. */
@@ -146,16 +149,18 @@
   /* Full-bleed map: the site nav (fixed) sits on top of it. */
   .projects_section .padding-global,
   .projects_section .container-huge {
-    padding: 0; /* no top padding/border: the explorer's negative margin must collapse through these wrappers */
+    padding: 0;
     border-top: 0;
     max-width: none;
   }
-  .projects_section .padding-global { position: relative; }
+  /* The nav offset lives on the wrapper (not a margin on the explorer), so it works whether
+     .container-huge is flex or block (no margin collapse involved). Chips are absolute from here. */
+  .projects_section .padding-global { position: relative; padding-top: var(--cm-nav-h, 61px); }
 
   /* Filter chips float over the top of the map; they take no space. */
   .projects_section .container-large.padding-xhuge {
     position: absolute;
-    top: calc(var(--cm-chips-top, 83px) - var(--cm-nav-h, 61px));
+    top: var(--cm-chips-top, 83px);
     left: 0;
     right: 0;
     z-index: 30;
@@ -214,11 +219,10 @@
   .map-explorer {
     position: relative;
     display: block;
-    /* --cm-explorer-top = the explorer's natural distance from the top of the
-       page (everything in normal flow above it: nav spacer, section padding).
-       The margin cancels it and adds the nav height so the map starts just below the nav. */
+    /* --cm-explorer-top = the explorer's natural distance from the page top, ignoring the
+       padding-global nav offset above (0 on the real page). The margin cancels it. */
     height: calc(100svh - var(--cm-nav-h, 61px));
-    margin-top: calc(var(--cm-nav-h, 61px) - var(--cm-explorer-top, 0px));
+    margin-top: calc(-1 * var(--cm-explorer-top, 0px));
     overflow: hidden;
     overflow: clip; /* never a scroll container; only .map-explorer_scroll scrolls */
   }
@@ -279,7 +283,7 @@
   .map-explorer.is-sheet-full .map-explorer_scroll { overflow-y: auto; }
   /* At half the lower part of the sheet is off-screen: size the scroller to the visible half
      (explorer height / 2 minus the handle; not a % of the sheet, whose Designer padding skews it). */
-  .map-explorer.is-sheet-half .map-explorer_scroll { flex: none; height: calc((100svh - var(--cm-nav-h, 61px)) / 2 - var(--cm-handle-h, 27px)); }
+  .map-explorer.is-sheet-half .map-explorer_scroll { flex: none; height: calc((100svh - var(--cm-nav-h, 61px)) / 2 - var(--cm-handle-h, 26px)); }
 
   .layout-toggle { display: flex; }
   .map-explorer.is-sheet-peek .layout-toggle { visibility: hidden; }

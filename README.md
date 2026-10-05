@@ -111,7 +111,7 @@ Filenames are pinned (not hashed) because the Webflow snippet references them by
 - `https://consortium-map-embed-fwd-projects.vercel.app/consortium-map.js`
 - `https://consortium-map-embed-fwd-projects.vercel.app/consortium-map.css`
 
-**Three versions are served side by side.** `consortium-map.js` / `.css` (v1) is the original self-contained list + map. `consortium-map-v2.js` / `.css` is the map-only, CMS-driven build where a card click zooms the map and a marker opens a detail modal. Both are frozen and still used by older pages. `consortium-map-v3.js` / `.css` is what this repo now produces: view modes, marker click highlights the card, card click opens the project page. A Vercel deploy replaces *every* file, so each deploy must include the v1 and v2 files too. Download them from the live URLs before deploying:
+**Three versions are served side by side.** `consortium-map.js` / `.css` (v1) is the original self-contained list + map. `consortium-map-v2.js` / `.css` is the map-only, CMS-driven build where a card click zooms the map and a marker opens a detail modal. Both are frozen and still used by older pages. `consortium-map-v3.js` / `.css` is what this repo now produces: view modes, marker click highlights the card, card click opens the project page. A Vercel deploy replaces *every* file, so each deploy must include the v1 and v2 files too. A deploy ships 7 files (v1 js/css, v2 js/css, v3 js/css, `consortium-map-v3-page.css`) plus `fonts/`. Download them from the live URLs before deploying:
 
 ```bash
 mkdir deploy && cd deploy
@@ -119,7 +119,8 @@ curl -sfO https://consortium-map-embed-fwd-projects.vercel.app/consortium-map.js
 curl -sfO https://consortium-map-embed-fwd-projects.vercel.app/consortium-map.css
 curl -sfO https://consortium-map-embed-fwd-projects.vercel.app/consortium-map-v2.js
 curl -sfO https://consortium-map-embed-fwd-projects.vercel.app/consortium-map-v2.css
-cp -R ../dist-embed/* .          # v3 files + fonts/
+cp -R ../dist-embed/* .          # v3 js/css, v3-page css + fonts/
+ls                               # check: 7 files + fonts/
 vercel link --yes --project consortium-map-embed --scope fwd-projects
 vercel deploy --scope fwd-projects          # preview first; check both versions load
 vercel deploy --prod --scope fwd-projects
@@ -227,9 +228,11 @@ On mobile `.map-explorer` uses `overflow: clip` so it can never scroll; only the
 
 On `cm:select`, the controller brings the list back if the map is expanded (desktop) or opens the sheet to half if it is at peek (mobile), then scrolls the card into view.
 
-**CSS:** the Webflow Designer can't style a child based on a parent's combo class, so the state rules live in `webflow/view-modes.css`. Paste it verbatim into the "View modes CSS" Embed on the Projects page (inside `<style>…</style>`) whenever it changes. The fixture links the same file.
+**CSS:** the Webflow Designer can't style a child based on a parent's combo class, so the state rules live in `webflow/view-modes.css`. `npm run build:embed` copies it to `dist-embed/consortium-map-v3-page.css`, which Vercel serves. The Projects page's "View modes CSS" Embed contains only `<link rel="stylesheet" href="https://consortium-map-embed-fwd-projects.vercel.app/consortium-map-v3-page.css">` plus the per-page variable block (`--cm-nav-h`, `--cm-chips-top`, etc.); a CSS change just needs a redeploy (the Embed's 10,000-char limit is why it is not pasted). The fixture links the built file.
 
-**Mobile height:** on mobile the explorer is `calc(100svh - var(--cm-explorer-top, 0px))`, so the peeking sheet sits at the bottom of the screen on load. `--cm-explorer-top` must equal the height of everything above the explorer on mobile (nav + filter row). Set it on the page, not in `view-modes.css`. The fixture sets it to 132px.
+**Lenis:** the site's Lenis smooth scroll would hijack wheel events over the list, so the controller sets `data-lenis-prevent` on `.map-explorer_scroll` and `.map-explorer_list` (and removes only what it added on destroy).
+
+**Mobile layout:** the explorer is `calc(100svh - var(--cm-nav-h, 61px))` tall. The nav offset is `padding-top` on `.projects_section .padding-global` (no margin collapse, so it works with a flex or block `.container-huge`); the explorer's `margin-top` is `-1 * var(--cm-explorer-top, 0px)` (set `--cm-explorer-top` on the page only if content sits above the explorer inside the wrapper). Chips are absolute at `--cm-chips-top` (83px), `--cm-handle-h` (26px) sizes the half-height scroller, `--cm-list-w` (30rem) centres the desktop pill, `--cm-pill-h` (31px) sizes the Portfolio pill overlap. The fixture sets `--cm-handle-h: 27px` and `--cm-list-w: 32rem` for its own markup; `?flex` makes `.container-huge` flex.
 
 **The map is never `display:none`.** In Portfolio it is hidden with `visibility:hidden` and taken out of flow; `MapInvalidateOnShow` re-measures it when it comes back. `#consortium-map-root` is a stacking context (`isolation: isolate`), so Leaflet's panes (z-index 400+) stay below the pill, the expand button and the sheet.
 

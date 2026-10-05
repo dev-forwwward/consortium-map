@@ -44,7 +44,10 @@
         .map-explorer_map { height: 70vh; }
       }
     </style>
-    <link rel="stylesheet" href="/webflow/view-modes.css" />
+    <link rel="stylesheet" href="/dist-embed/consortium-map-v3-page.css" />
+    <script>
+      if (/[?&]flex/.test(location.search)) document.write('<style>@media (max-width: 991px) { .projects_section .container-huge { display: flex; flex-direction: column; } }</style>');
+    </script>
     <style>
       /* Fixture-only stand-ins for Designer base styles of the new elements. */
       /* Fake fixed site nav (mobile only, so the desktop fixture is unchanged). */
@@ -52,12 +55,15 @@
       @media (max-width: 991px) {
         .navbar-wrapper { display: flex; align-items: center; position: fixed; top: 0; left: 0; right: 0; height: 61px; padding: 0 20px; background: #383737; color: #f6f2ee; z-index: 100; box-sizing: border-box; }
         .navbar-logo { font-family: monospace; letter-spacing: 0.2em; }
-        /* The page reserves the nav height above the explorer; --cm-explorer-top is
-           the explorer's natural distance from the page top (measured: explorer.getBoundingClientRect().top + scrollY). */
-        .projects_section { padding-top: 61px; }
-        :root { --cm-explorer-top: 61px; }
+        /* Like the real page: the explorer's natural top is 0 (--cm-explorer-top default);
+           the nav offset comes from view-modes.css (.padding-global padding-top).
+           The fixture's sheet handle measures 27px (real page: 26px, the default).
+           Add ?flex to make .container-huge display:flex as it computes on the real mobile page. */
+        :root { --cm-handle-h: 27px; }
         .map-explorer { margin-left: 0; margin-right: 0; margin-bottom: 0; }
       }
+      /* The fixture's list is 30rem + 2rem padding wide; the real page's is 30rem outer (default). */
+      :root { --cm-list-w: 32rem; }
       .map-view-toggle { gap: 4px; padding: 4px; background: #e8e4dc; }
       @media (min-width: 992px) { .map-view-toggle { display: flex; } }
       .map-view-toggle_button, .layout-toggle_button, .map-expand-button { border: 0; font: inherit; cursor: pointer; }

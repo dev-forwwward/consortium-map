@@ -299,7 +299,7 @@
 
   .map-explorer.is-list .map-explorer_items .project-card { gap: 1rem; }
   .map-explorer.is-list .map-explorer_items .project-card_image-wrap { width: 6rem; }
-  .map-explorer.is-list .project-card_body { flex-wrap: wrap; gap: 0.25rem 0.75rem; }
+  .map-explorer.is-list .project-card_body { flex-wrap: wrap; gap: 0.25rem 0.75rem; align-items: flex-start; }
   .map-explorer.is-list .project-card_location { margin-left: 0; flex-basis: 100%; text-align: left; }
 }
 

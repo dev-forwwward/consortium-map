@@ -277,7 +277,7 @@
   .map-explorer.is-sheet-full .map-explorer_scroll { margin-top: 44px; }
   /* The heading row stays put; only the cards scroll under it. The gap below it is padding
      (not margin) so it is painted and cards do not show through. Mobile only. */
-  .map-explorer_header {
+  .map-explorer .map-explorer_header {
     position: sticky;
     top: 0;
     z-index: 2;

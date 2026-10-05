@@ -291,6 +291,26 @@ describe('cm:select', () => {
     expect(scrollSpy).not.toHaveBeenCalled();
   });
 
+  it('scrolls to the plain card offset when there is no header', () => {
+    const root = mountDom();
+    const sheet = document.querySelector<HTMLElement>('[data-cm-sheet]')!;
+    const scroller = document.createElement('div');
+    scroller.className = 'map-explorer_scroll';
+    while (sheet.childNodes.length) scroller.appendChild(sheet.firstChild!);
+    sheet.appendChild(scroller);
+    scroller.scrollTop = 40;
+    const card = document.querySelector<HTMLElement>('[data-cm-item]')!;
+    scroller.getBoundingClientRect = () => ({ top: 100 }) as DOMRect;
+    card.getBoundingClientRect = () => ({ top: 260 }) as DOMRect;
+    controller = initViewController(root, {
+      matchMedia: fakeMatchMedia(false).matchMedia,
+      prefersReducedMotion: () => true,
+    });
+    key('[data-cm-sheet-handle]', 'Enter');
+    select('alpha');
+    expect(scrollToSpy).toHaveBeenCalledWith({ top: 200, behavior: 'auto' });
+  });
+
   it('ignores unknown ids', () => {
     const root = mountDom();
     controller = initViewController(root, { matchMedia: fakeMatchMedia(true).matchMedia });

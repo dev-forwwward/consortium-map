@@ -8,6 +8,7 @@ import './embed.css';
 
 import { MapExplorerProvider } from './context/MapExplorerProvider';
 import { MapOnlyLayout } from './components/layout/MapOnlyLayout';
+import { initViewController } from './webflow/viewController';
 
 const MOUNT_ID = 'consortium-map-root';
 // Deployed alongside consortium-map-v2.js at build/deploy time — hardcoded
@@ -15,7 +16,7 @@ const MOUNT_ID = 'consortium-map-root';
 // guaranteed under Rollup's iife output format.
 // A `data-css-url` on the mount element overrides it, for testing a local
 // build against a fixture page.
-const CSS_URL = 'https://consortium-map-embed-fwd-projects.vercel.app/consortium-map-v2.css';
+const CSS_URL = 'https://consortium-map-embed-fwd-projects.vercel.app/consortium-map-v3.css';
 
 function mount() {
   const container = document.getElementById(MOUNT_ID);
@@ -48,3 +49,12 @@ function mount() {
 }
 
 mount();
+
+// View modes (Map/Portfolio, grid/list, expanded map, mobile sheet). The
+// script tag is deferred, so the page is parsed by now.
+const explorer = document.querySelector<HTMLElement>('.map-explorer');
+if (explorer) {
+  initViewController(explorer);
+} else {
+  console.warn('[consortium-map-embed] .map-explorer not found — view modes disabled');
+}

@@ -118,8 +118,8 @@
   /* Full-bleed map: the site nav (fixed) sits on top of it. */
   .projects_section .padding-global,
   .projects_section .container-huge {
-    padding-left: 0;
-    padding-right: 0;
+    padding: 0; /* no top padding/border: the explorer's negative margin must collapse through these wrappers */
+    border-top: 0;
     max-width: none;
   }
   .projects_section .padding-global { position: relative; }
@@ -150,7 +150,7 @@
     border: 0;
   }
 
-  .filter_form {
+  .projects_section .filter_form {
     position: relative; /* contain the visually-hidden absolute radios inside the scroller */
     pointer-events: auto;
     display: flex;
@@ -161,10 +161,12 @@
     overflow-x: auto;
     scrollbar-width: none;
   }
-  .filter_form::-webkit-scrollbar { display: none; }
-  .filter_list-wrapper, .filter_list { display: contents; }
-  .filter_option {
+  .projects_section .filter_form::-webkit-scrollbar { display: none; }
+  .projects_section .filter_list-wrapper, .projects_section .filter_list { display: contents; }
+  .projects_section .filter_list .w-dyn-item { flex: none; }
+  .projects_section .filter_option {
     flex: none;
+    margin: 0; /* beat .w-radio margin-bottom / padding-left */
     align-self: flex-start;
     white-space: nowrap;
     padding: 4px;
@@ -178,8 +180,8 @@
     letter-spacing: 0;
     text-transform: uppercase;
   }
-  .filter_option.is-list-active { background: #ede5de; color: #2b2b2b; }
-  .filter_label { color: inherit; font: inherit; margin: 0; }
+  .projects_section .filter_option.is-list-active { background: #ede5de; color: #2b2b2b; }
+  .projects_section .filter_label { color: inherit; font: inherit; margin: 0; }
 
   .map-explorer {
     position: relative;
@@ -240,7 +242,7 @@
   }
   /* Full: the chips overlay the top of the sheet below the handle. */
   .map-explorer.is-sheet-full .map-explorer_header { margin-top: 44px; }
-  .map-explorer_title { color: #f6f2ee; font-size: 20px; text-transform: uppercase; }
+  .projects_section .map-explorer_title { color: #f6f2ee; font-size: 20px; text-transform: uppercase; }
 
   .map-explorer_scroll { flex: 1; min-height: 0; overflow: hidden; }
   /* At half the lower part of the sheet is off-screen; pad so any card can
@@ -251,6 +253,7 @@
   .map-explorer.is-sheet-full .map-explorer_scroll { overflow-y: auto; touch-action: pan-y; }
 
   .layout-toggle { display: flex; }
+  .map-explorer.is-sheet-peek .layout-toggle { visibility: hidden; }
 
   .map-explorer.is-list .map-explorer_items .project-card { gap: 1rem; }
   .map-explorer.is-list .map-explorer_items .project-card_image-wrap { width: 6rem; }

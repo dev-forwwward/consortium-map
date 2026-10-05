@@ -103,6 +103,7 @@ This same app also ships as a self-mounting `<script>` embed for the client's We
 npm run build:embed
 # → dist-embed/consortium-map-v3.js   (stable filename, no hash)
 # → dist-embed/consortium-map-v3.css  (stable filename, no hash)
+# → dist-embed/consortium-map-v3-page.css  (copy of webflow/view-modes.css, stable filename)
 ```
 
 Filenames are pinned (not hashed) because the Webflow snippet references them by exact URL — a hash would mean editing Webflow on every deploy.
@@ -228,11 +229,18 @@ On mobile `.map-explorer` uses `overflow: clip` so it can never scroll; only the
 
 On `cm:select`, the controller brings the list back if the map is expanded (desktop) or opens the sheet to half if it is at peek (mobile), then scrolls the card into view.
 
-**CSS:** the Webflow Designer can't style a child based on a parent's combo class, so the state rules live in `webflow/view-modes.css`. `npm run build:embed` copies it to `dist-embed/consortium-map-v3-page.css`, which Vercel serves. The Projects page's "View modes CSS" Embed contains only `<link rel="stylesheet" href="https://consortium-map-embed-fwd-projects.vercel.app/consortium-map-v3-page.css">` plus the per-page variable block (`--cm-nav-h`, `--cm-chips-top`, etc.); a CSS change just needs a redeploy (the Embed's 10,000-char limit is why it is not pasted). The fixture links the built file.
+**CSS:** the Webflow Designer can't style a child based on a parent's combo class, so the state rules live in `webflow/view-modes.css`. `npm run build:embed` copies it to `dist-embed/consortium-map-v3-page.css`, which Vercel serves. The Projects page's "View modes CSS" Embed contains only `<link rel="stylesheet" href="https://consortium-map-embed-fwd-projects.vercel.app/consortium-map-v3-page.css">` plus the per-page variable block (`--cm-nav-h`, `--cm-chips-top`, etc.); a CSS change just needs a redeploy (the Embed's 10,000-char limit is why it is not pasted). The Embed's whole content:
+
+```html
+<link rel="stylesheet" href="https://consortium-map-embed-fwd-projects.vercel.app/consortium-map-v3-page.css">
+<style>@media (min-width: 992px){:root{--cm-list-w:30rem}} @media (max-width: 991px){:root{--cm-explorer-top:0px;--cm-nav-h:61px;--cm-chips-top:83px;--cm-handle-h:26px}}</style>
+```
+
+The fixture links the built file.
 
 **Lenis:** the site's Lenis smooth scroll would hijack wheel events over the list, so the controller sets `data-lenis-prevent` on `.map-explorer_scroll` and `.map-explorer_list` (and removes only what it added on destroy).
 
-**Mobile layout:** the explorer is `calc(100svh - var(--cm-nav-h, 61px))` tall. The nav offset is `padding-top` on `.projects_section .padding-global` (no margin collapse, so it works with a flex or block `.container-huge`); the explorer's `margin-top` is `-1 * var(--cm-explorer-top, 0px)` (set `--cm-explorer-top` on the page only if content sits above the explorer inside the wrapper). Chips are absolute at `--cm-chips-top` (83px), `--cm-handle-h` (26px) sizes the half-height scroller, `--cm-list-w` (30rem) centres the desktop pill, `--cm-pill-h` (31px) sizes the Portfolio pill overlap. The fixture sets `--cm-handle-h: 27px` and `--cm-list-w: 32rem` for its own markup; `?flex` makes `.container-huge` flex.
+**Mobile layout:** the explorer is `calc(100svh - var(--cm-nav-h, 61px))` tall. The nav offset is `padding-top` on `.projects_section .padding-global` (no margin collapse, so it works with a flex or block `.container-huge`); the explorer's `margin-top` is `-1 * var(--cm-explorer-top, 0px)` (set `--cm-explorer-top` on the page only if content sits above the explorer inside the wrapper). Chips are absolute at `--cm-chips-top` (83px), `--cm-handle-h` (26px) sizes the half-height scroller, `--cm-list-w` (30rem) centres the desktop pill, `--cm-pill-h` (33px) sizes the Portfolio pill overlap. The expand-button offset assumes `--cm-explorer-top` is 0px. The fixture sets `--cm-handle-h: 27px`, `--cm-pill-h: 31px` and `--cm-list-w: 32rem` for its own markup; `?flex` makes `.container-huge` flex.
 
 **The map is never `display:none`.** In Portfolio it is hidden with `visibility:hidden` and taken out of flow; `MapInvalidateOnShow` re-measures it when it comes back. `#consortium-map-root` is a stacking context (`isolation: isolate`), so Leaflet's panes (z-index 400+) stay below the pill, the expand button and the sheet.
 

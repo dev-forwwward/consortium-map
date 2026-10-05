@@ -374,21 +374,43 @@ describe('link controls', () => {
 });
 
 describe('Lenis prevent', () => {
-  it('marks both scrollers on init and on destroy removes only what it added', () => {
+  const mount = () => {
     const root = mountDom();
-    root.querySelector('.map-explorer_list')!.insertAdjacentHTML(
-      'beforeend',
-      '<div class="map-explorer_scroll"></div><div class="map-explorer_scroll" hidden></div>',
-    );
     const list = root.querySelector<HTMLElement>('.map-explorer_list')!;
-    const scroll = root.querySelector<HTMLElement>('.map-explorer_scroll')!;
-    list.setAttribute('data-lenis-prevent', '');
-    controller = initViewController(root, { matchMedia: fakeMatchMedia(false).matchMedia });
-    expect(list.hasAttribute('data-lenis-prevent')).toBe(true);
-    expect(scroll.hasAttribute('data-lenis-prevent')).toBe(true);
+    list.insertAdjacentHTML('beforeend', '<div class="map-explorer_scroll"></div>');
+    return { root, list, scroll: root.querySelector<HTMLElement>('.map-explorer_scroll')! };
+  };
+  const has = (el: HTMLElement) => el.hasAttribute('data-lenis-prevent');
+  const media = () => fakeMatchMedia(false).matchMedia;
+
+  it('marks both scrollers on init and removes them on destroy', () => {
+    const { root, list, scroll } = mount();
+    controller = initViewController(root, { matchMedia: media() });
+    expect(has(list)).toBe(true);
+    expect(has(scroll)).toBe(true);
     controller.destroy();
-    expect(scroll.hasAttribute('data-lenis-prevent')).toBe(false);
-    expect(list.hasAttribute('data-lenis-prevent')).toBe(true);
+    expect(has(list)).toBe(false);
+    expect(has(scroll)).toBe(false);
+  });
+
+  it('removes only what it added', () => {
+    const { root, list, scroll } = mount();
+    list.setAttribute('data-lenis-prevent', '');
+    controller = initViewController(root, { matchMedia: media() });
+    controller.destroy();
+    expect(has(list)).toBe(true);
+    expect(has(scroll)).toBe(false);
+  });
+
+  it('sets the attribute again after init, destroy, init', () => {
+    const { root, list, scroll } = mount();
+    initViewController(root, { matchMedia: media() }).destroy();
+    controller = initViewController(root, { matchMedia: media() });
+    expect(has(list)).toBe(true);
+    expect(has(scroll)).toBe(true);
+    controller.destroy();
+    expect(has(list)).toBe(false);
+    expect(has(scroll)).toBe(false);
   });
 });
 

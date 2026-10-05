@@ -100,7 +100,7 @@
     align-self: center;
     transform: none;
     /* Overlap the explorer's bottom so the in-flow pill adds no height (no gap before the next section). */
-    margin-top: calc(-1 * (var(--cm-pill-h, 31px) + 1rem));
+    margin-top: calc(-1 * (var(--cm-pill-h, 33px) + 1rem));
     margin-bottom: 0;
   }
 

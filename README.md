@@ -101,8 +101,8 @@ This same app also ships as a self-mounting `<script>` embed for the client's We
 
 ```bash
 npm run build:embed
-# → dist-embed/consortium-map-v2.js   (stable filename, no hash)
-# → dist-embed/consortium-map-v2.css  (stable filename, no hash)
+# → dist-embed/consortium-map-v3.js   (stable filename, no hash)
+# → dist-embed/consortium-map-v3.css  (stable filename, no hash)
 ```
 
 Filenames are pinned (not hashed) because the Webflow snippet references them by exact URL — a hash would mean editing Webflow on every deploy.
@@ -111,13 +111,15 @@ Filenames are pinned (not hashed) because the Webflow snippet references them by
 - `https://consortium-map-embed-fwd-projects.vercel.app/consortium-map.js`
 - `https://consortium-map-embed-fwd-projects.vercel.app/consortium-map.css`
 
-**Two versions are served side by side.** `consortium-map.js` / `.css` (v1) is the original self-contained list + map. It is frozen and still used by older pages. `consortium-map-v2.js` / `.css` is the map-only, CMS-driven build this repo now produces. A Vercel deploy replaces *every* file, so each deploy must include the v1 files too, or older pages break. Download them from the live URLs before deploying:
+**Three versions are served side by side.** `consortium-map.js` / `.css` (v1) is the original self-contained list + map. `consortium-map-v2.js` / `.css` is the map-only, CMS-driven build where a card click zooms the map and a marker opens a detail modal. Both are frozen and still used by older pages. `consortium-map-v3.js` / `.css` is what this repo now produces: view modes, marker click highlights the card, card click opens the project page. A Vercel deploy replaces *every* file, so each deploy must include the v1 and v2 files too. Download them from the live URLs before deploying:
 
 ```bash
 mkdir deploy && cd deploy
 curl -sfO https://consortium-map-embed-fwd-projects.vercel.app/consortium-map.js
 curl -sfO https://consortium-map-embed-fwd-projects.vercel.app/consortium-map.css
-cp -R ../dist-embed/* .          # v2 files + fonts/
+curl -sfO https://consortium-map-embed-fwd-projects.vercel.app/consortium-map-v2.js
+curl -sfO https://consortium-map-embed-fwd-projects.vercel.app/consortium-map-v2.css
+cp -R ../dist-embed/* .          # v3 files + fonts/
 vercel link --yes --project consortium-map-embed --scope fwd-projects
 vercel deploy --scope fwd-projects          # preview first; check both versions load
 vercel deploy --prod --scope fwd-projects
@@ -130,7 +132,8 @@ To redeploy: rebuild (`npm run build:embed`) and push the contents of `dist-embe
 - Fonts are self-hosted, not loaded from Google Fonts (avoids a third-party network call from a script running on someone else's domain). `scripts/copy-fonts.mjs` copies just the latin-subset `.woff2` files from the installed `@fontsource*` packages into `public/fonts/`, and `src/embed.css` hand-writes the `@font-face` rules. Do **not** `@import` a fontsource package's own CSS directly in the embed build — Vite library mode force-inlines every asset referenced via CSS `url()` as base64 regardless of `assetsInlineLimit`, which previously ballooned the CSS to 1.2MB.
 - `src/embed.tsx` hardcodes `CSS_URL` as a constant pointing at the deployed CSS file — it's not resolved via `import.meta.url` (unreliable under Rollup's `iife` output). If the Vercel project/domain ever changes, update this constant and rebuild.
 - The detail modal is keyed by `detailOpenSeq` (a counter in `MapExplorerProvider`, incremented on every open) rather than by location id, so reopening the *same* marker twice always mounts a fresh `<dialog>`. This sidesteps a documented Chromium/Edge bug where a `<dialog>` re-opened (not freshly created) inside a shadow root can become unclickable.
-- `dev/webflow-cms-fixture.html` stands in for the Webflow projects page: a fake Collection List with the `data-cm-*` attributes, a category filter, and one deliberately broken item. Run `npm run build:embed`, serve the repo root (`python3 -m http.server 4321`), and open `http://localhost:4321/dev/webflow-cms-fixture.html`. The mount's `data-css-url` points the embed at the local CSS instead of the deployed one.
+- `dev/webflow-cms-fixture.html` stands in for the Webflow projects page: a fake Collection List with the `data-cm-*` attributes, a category filter, the view-mode controls and sheet, and one deliberately broken item. Run `npm run build:embed`, serve the repo root (`python3 -m http.server 4321`), and open `http://localhost:4321/dev/webflow-cms-fixture.html`. The mount's `data-css-url` points the embed at the local CSS instead of the deployed one.
+- Unit tests (`npm test`, Vitest) cover the sheet snap maths, the state → class mapping and the view controller (jsdom). Pointer dragging is checked by hand in the fixture.
 - `dev/webflow-fixture.html` is a throwaway local test page with deliberately hostile CSS (clashing `.flex`/`.relative`/`.border-b` class names, loud colors) for manually verifying shadow-DOM isolation in both directions before shipping a change. Serve it with `npx serve dev` and point its `<script src>` at either the live Vercel URL or a local `dist-embed/` server.
 
 ## Webflow integration
@@ -192,11 +195,41 @@ An item with a missing or invalid coordinate is left off the map and logged once
 
 `src/hooks/useLocations.ts` (`cms` source) watches the list with a `MutationObserver`. Whenever items are hidden (`display:none` / `hidden`), removed or added, it re-reads the visible ones, so the map always shows exactly what the filter shows. `src/hooks/useCmsBridge.ts` links the two directions:
 
-- Hovering a card highlights its marker (or the cluster containing it).
-- Clicking a card zooms the map to its marker. Clicks on a real `<a>` inside the card still navigate normally.
-- Hovering or clicking a marker adds `is-cm-hover` / `is-cm-active` to the matching card and scrolls it into view. Both are styled as combo classes on `.project-card` in the Designer.
+- Clicking a card opens the project page. Each card is wrapped in a Link Block bound to the Works Template page.
+- Hovering a marker adds `is-cm-hover` to the matching card. Clicking a marker selects it, adds `is-cm-active` to the card and dispatches `cm:select` (`detail: { id }`) on `document`. There is no detail modal in the embed.
 
 The embed no longer narrows the list to the map's viewport. The list follows the filter only.
+
+### View modes
+
+`src/webflow/viewController.ts` (started by the embed) owns the page's view state and writes it as combo classes on `.map-explorer`:
+
+| Class | Meaning |
+|---|---|
+| `is-portfolio` | Desktop Portfolio view: list full width, map hidden but mounted |
+| `is-list` | List rows instead of cards (Portfolio on desktop, sheet on mobile) |
+| `is-map-expanded` | Desktop map full width, list hidden |
+| `is-sheet-peek` / `is-sheet-half` / `is-sheet-full` | Mobile (<992px) sheet position |
+
+Controls are found by attribute, anywhere on the page:
+
+| Attribute | Element |
+|---|---|
+| `data-cm-view="map"` / `"portfolio"` | Pill buttons |
+| `data-cm-layout="grid"` / `"list"` | Layout toggle buttons |
+| `data-cm-expand` | Expand button over the map (mobile: snaps the sheet to peek) |
+| `data-cm-sheet` | The list column, which is the sheet on mobile |
+| `data-cm-sheet-handle` | Sheet drag handle (drag, tap, or Enter/Space) |
+
+The active control gets `is-active` and `aria-pressed="true"`.
+
+On `cm:select`, the controller brings the list back if the map is expanded (desktop) or opens the sheet to half if it is at peek (mobile), then scrolls the card into view.
+
+**CSS:** the Webflow Designer can't style a child based on a parent's combo class, so the state rules live in `webflow/view-modes.css`. Paste it verbatim into the "View modes CSS" Embed on the Projects page (inside `<style>…</style>`) whenever it changes. The fixture links the same file.
+
+**Mobile height:** on mobile the explorer is `calc(100svh - var(--cm-explorer-top, 0px))`, so the peeking sheet sits at the bottom of the screen on load. `--cm-explorer-top` must equal the height of everything above the explorer on mobile (nav + filter row). Set it on the page, not in `view-modes.css`. The fixture sets it to 132px.
+
+**The map is never `display:none`.** In Portfolio it is hidden with `visibility:hidden` and taken out of flow; `MapInvalidateOnShow` re-measures it when it comes back. `#consortium-map-root` is a stacking context (`isolation: isolate`), so Leaflet's panes (z-index 400+) stay below the pill, the expand button and the sheet.
 
 ### Filter (Finsweet Attributes List Filter v2)
 

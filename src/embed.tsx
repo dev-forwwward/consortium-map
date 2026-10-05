@@ -11,7 +11,7 @@ import { MapOnlyLayout } from './components/layout/MapOnlyLayout';
 import { initViewController } from './webflow/viewController';
 
 const MOUNT_ID = 'consortium-map-root';
-// Deployed alongside consortium-map-v2.js at build/deploy time — hardcoded
+// Deployed alongside consortium-map-v3.js at build/deploy time — hardcoded
 // rather than resolved via import.meta.url, whose behavior isn't reliably
 // guaranteed under Rollup's iife output format.
 // A `data-css-url` on the mount element overrides it, for testing a local

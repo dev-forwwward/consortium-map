@@ -115,35 +115,101 @@
 @media (max-width: 991px) {
   .map-view-toggle { display: none; }
 
+  /* Full-bleed map: the site nav (fixed) sits on top of it. */
+  .projects_section .padding-global,
+  .projects_section .container-huge {
+    padding-left: 0;
+    padding-right: 0;
+    max-width: none;
+  }
+  .projects_section .padding-global { position: relative; }
+
+  /* Filter chips float over the top of the map; they take no space. */
+  .projects_section .container-large.padding-xhuge {
+    position: absolute;
+    top: var(--cm-chips-top, 92px);
+    left: 0;
+    right: 0;
+    z-index: 30;
+    margin: 0;
+    padding: 0;
+    max-width: none;
+    pointer-events: none;
+  }
+  .projects_section .padding-section-small,
+  .projects_section .filter_form-wrapper { padding: 0; margin: 0; }
+  .projects_section .context-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   .filter_form {
+    position: relative; /* contain the visually-hidden absolute radios inside the scroller */
+    pointer-events: auto;
+    display: flex;
     flex-wrap: nowrap;
     justify-content: flex-start;
+    gap: 16px;
+    padding: 0 20px;
     overflow-x: auto;
     scrollbar-width: none;
   }
   .filter_form::-webkit-scrollbar { display: none; }
-  .filter_option { flex: none; }
+  .filter_list-wrapper, .filter_list { display: contents; }
+  .filter_option {
+    flex: none;
+    align-self: flex-start;
+    white-space: nowrap;
+    padding: 4px;
+    background: #504f4e;
+    color: #ffffff;
+    opacity: 1;
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 1.3;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+  .filter_option.is-list-active { background: #ede5de; color: #2b2b2b; }
+  .filter_label { color: inherit; font: inherit; margin: 0; }
 
   .map-explorer {
     position: relative;
     display: block;
-    /* --cm-explorer-top must equal the height of everything above the explorer
-       on mobile (nav + filter); set it per page. */
-    height: calc(100svh - var(--cm-explorer-top, 0px));
+    /* --cm-explorer-top = the explorer's natural distance from the top of the
+       page (everything in normal flow above it: nav spacer, section padding).
+       The negative margin cancels it so the map starts at y=0, under the nav. */
+    height: 100svh;
+    margin-top: calc(-1 * var(--cm-explorer-top, 0px));
     overflow: hidden;
     overflow: clip; /* never a scroll container; only .map-explorer_scroll scrolls */
   }
   .map-explorer_map { position: absolute; inset: 0; }
   .map-expand-button {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
+    top: calc(var(--cm-chips-top, 92px) + 29px);
+    right: 23px;
     z-index: 10;
   }
+  /* Higher specificity than the Designer classes so the Figma colours win. */
+  .map-explorer .map-expand-button { background: #383737; }
+  .map-explorer [data-cm-sheet] { background: #383737; }
 
   [data-cm-sheet] {
     position: absolute;
-    inset: 0;
+    top: var(--cm-nav-h, 70px);
+    bottom: 0;
+    left: 0;
+    right: 0;
+    --cm-sheet-peek: 66px;
     z-index: 20;
     width: auto;
     display: flex;
@@ -168,16 +234,19 @@
     touch-action: none;
   }
   .map-explorer_sheet-bar {
-    width: 3.5rem;
+    width: 55px;
     height: 3px;
-    background: rgba(242, 240, 235, 0.5);
+    background: #898989;
   }
+  /* Full: the chips overlay the top of the sheet below the handle. */
+  .map-explorer.is-sheet-full .map-explorer_header { margin-top: 44px; }
+  .map-explorer_title { color: #f6f2ee; font-size: 20px; text-transform: uppercase; }
 
   .map-explorer_scroll { flex: 1; min-height: 0; overflow: hidden; }
   /* At half the lower part of the sheet is off-screen; pad so any card can
      still be scrolled into the visible half. */
   .map-explorer.is-sheet-half .map-explorer_scroll {
-    padding-bottom: calc((100svh - var(--cm-explorer-top, 0px)) / 2);
+    padding-bottom: calc((100svh - var(--cm-nav-h, 70px)) / 2);
   }
   .map-explorer.is-sheet-full .map-explorer_scroll { overflow-y: auto; touch-action: pan-y; }
 

@@ -41,8 +41,17 @@
     <link rel="stylesheet" href="/webflow/view-modes.css" />
     <style>
       /* Fixture-only stand-ins for Designer base styles of the new elements. */
-      /* Height of the filter row above the explorer on mobile (measured at 393px wide). */
-      @media (max-width: 991px) { :root { --cm-explorer-top: 132px; } .map-explorer { margin: 0; } }
+      /* Fake fixed site nav (mobile only, so the desktop fixture is unchanged). */
+      .navbar-wrapper { display: none; }
+      @media (max-width: 991px) {
+        .navbar-wrapper { display: flex; align-items: center; position: fixed; top: 0; left: 0; right: 0; height: 70px; padding: 0 20px; background: #383737; color: #f6f2ee; z-index: 100; box-sizing: border-box; }
+        .navbar-logo { font-family: monospace; letter-spacing: 0.2em; }
+        /* The page reserves the nav height above the explorer; --cm-explorer-top is
+           the explorer's natural distance from the page top (measured: explorer.getBoundingClientRect().top + scrollY). */
+        .projects_section { padding-top: 70px; }
+        :root { --cm-explorer-top: 70px; }
+        .map-explorer { margin-left: 0; margin-right: 0; margin-bottom: 0; }
+      }
       .map-view-toggle { gap: 4px; padding: 4px; background: #e8e4dc; }
       @media (min-width: 992px) { .map-view-toggle { display: flex; } }
       .map-view-toggle_button, .layout-toggle_button, .map-expand-button { border: 0; font: inherit; cursor: pointer; }
@@ -59,6 +68,14 @@
     </style>
   </head>
   <body>
+    <div class="navbar-wrapper is-fixed"><span class="navbar-logo">CONSORTIUM</span></div>
+    <section class="projects_section">
+    <div class="padding-global">
+    <div class="container-large padding-top padding-xhuge">
+    <div class="padding-section-small padding-bottom">
+    <div>
+    <h1 class="context-label">projects</h1>
+    <div class="filter_form-wrapper w-form">
     <form class="filter_form" fs-list-element="filters">
       <label class="filter_option w-radio"><input type="radio" name="radio" id="filter-all" value="all" class="filter_radio" fs-list-field="category" fs-list-value="" /><span class="filter_label w-form-label">All</span></label>
       <div class="filter_list-wrapper w-dyn-list">
@@ -90,6 +107,11 @@
         </div>
       </div>
     </form>
+    </div>
+    </div>
+    </div>
+    </div>
+    <div class="container-huge">
 
     <div class="map-view-toggle" role="group" aria-label="Projects view">
       <button class="map-view-toggle_button" type="button" data-cm-view="portfolio">Portfolio</button>
@@ -348,6 +370,9 @@
         <script src="/dist-embed/consortium-map-v3.js" defer></script>
       </div>
     </div>
+    </div>
+    </div>
+    </section>
     <script>
       // Stand-in for webflow.js, which every published Webflow page loads.
       // Finsweet Attributes queues its init with window.Webflow.push(fn) and

@@ -41,6 +41,8 @@
     <link rel="stylesheet" href="/webflow/view-modes.css" />
     <style>
       /* Fixture-only stand-ins for Designer base styles of the new elements. */
+      /* Height of the filter row above the explorer on mobile (measured at 393px wide). */
+      @media (max-width: 991px) { :root { --cm-explorer-top: 132px; } .map-explorer { margin: 0; } }
       .map-view-toggle { gap: 4px; padding: 4px; background: #e8e4dc; }
       @media (min-width: 992px) { .map-view-toggle { display: flex; } }
       .map-view-toggle_button, .layout-toggle_button, .map-expand-button { border: 0; font: inherit; cursor: pointer; }

@@ -1,12 +1,20 @@
 /* Leaflet layers sit above default stacking contexts; keep our overlays
    (loading/error states, modal) unambiguously on top. */
 .leaflet-container {
-  background: var(--color-ink);
+  /* The basemap's land colour, so tiles still loading don't flash black. */
+  background: var(--cm-map-land, #3c3c3c);
   font-family: var(--font-body);
 }
 
+/* Basemap colours (Figma 3640:49557): CARTO's dark tiles remapped to quiet warm greys just above the
+   page colour. Each filter is grayscale, then contrast + brightness acting as one linear map:
+   base   land #0e → #3c, water #2c353c → #40 (roads and borders fall in between, barely visible);
+   labels text #9b → #6e, halo #3c → #3c (so the halo disappears into the land). */
+.cm-tiles-base { filter: grayscale(1) contrast(0.188) brightness(0.565); }
+.cm-tiles-labels { filter: grayscale(1) contrast(0.703) brightness(0.748); }
+
 .leaflet-control-attribution {
-  background: rgba(15, 16, 18, 0.75) !important;
+  background: rgba(56, 55, 55, 0.75) !important;
   color: var(--color-fog) !important;
 }
 

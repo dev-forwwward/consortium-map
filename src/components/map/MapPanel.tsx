@@ -1,7 +1,13 @@
 import { useEffect } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import { useMapExplorer } from '../../hooks/useMapExplorer';
-import { TILE_ATTRIBUTION, TILE_URL, DEFAULT_CENTER, DEFAULT_ZOOM } from '../../lib/constants';
+import {
+  TILE_ATTRIBUTION,
+  TILE_LABELS_URL,
+  TILE_URL,
+  DEFAULT_CENTER,
+  DEFAULT_ZOOM,
+} from '../../lib/constants';
 import { ClusterLayer } from './ClusterLayer';
 import { MapBoundsSync } from './MapBoundsSync';
 import { MapInvalidateOnShow } from './MapInvalidateOnShow';
@@ -63,10 +69,13 @@ export function MapPanel({
             <TileLayer
               url={TILE_URL}
               attribution={TILE_ATTRIBUTION}
+              className="cm-tiles-base"
               eventHandlers={{
                 tileerror: () => setMapError('Map tiles failed to load. Check your connection and retry.'),
               }}
             />
+            {/* Labels on their own layer, above the base, so they can be recoloured separately. */}
+            <TileLayer url={TILE_LABELS_URL} className="cm-tiles-labels" zIndex={2} />
             <ClusterLayer selectOnly={selectOnly} />
             {syncBounds ? <MapBoundsSync /> : null}
             <MapInvalidateOnShow />

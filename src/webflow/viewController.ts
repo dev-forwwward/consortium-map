@@ -54,11 +54,12 @@ export function initViewController(
   const handle = root.querySelector<HTMLElement>(HANDLE_SELECTOR);
 
   // The site's Lenis smooth scroll hijacks wheel events over any element not
-  // marked data-lenis-prevent, so the list scrollers must carry it.
+  // marked data-lenis-prevent, so the list scrollers must carry it. Only while
+  // they scroll, though (see syncLenisPrevent). Attributes the Designer set are
+  // left alone.
   const lenisAdded: HTMLElement[] = [];
   root.querySelectorAll<HTMLElement>(LENIS_SELECTOR).forEach((el) => {
     if (el.hasAttribute('data-lenis-prevent')) return;
-    el.setAttribute('data-lenis-prevent', '');
     lenisAdded.push(el);
   });
 
@@ -102,9 +103,19 @@ export function initViewController(
 
   let state: ViewState = { ...DEFAULT_STATE };
 
+  // Desktop Portfolio: the page scrolls, not the list. An opted-out list there
+  // sends wheel events over the cards to native scrolling while Lenis is still
+  // easing from a wheel elsewhere; the two fight, so scroll is lost and the
+  // page jitters.
+  const syncLenisPrevent = () => {
+    const listScrolls = !(desktop.matches && state.view === 'portfolio');
+    lenisAdded.forEach((el) => el.toggleAttribute('data-lenis-prevent', listScrolls));
+  };
+
   const render = () => {
     applyClasses(root, state, desktop.matches);
     syncControls(document, state, desktop.matches);
+    syncLenisPrevent();
   };
 
   const update = (next: Partial<ViewState>) => {

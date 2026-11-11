@@ -426,6 +426,27 @@ describe('Lenis prevent', () => {
     expect(has(scroll)).toBe(false);
   });
 
+  it('desktop Portfolio: the page scrolls, not the list, so the list leaves wheel events to Lenis', () => {
+    const { root, list, scroll } = mount();
+    controller = initViewController(root, { matchMedia: fakeMatchMedia(true).matchMedia });
+    expect(has(list)).toBe(true); // Map view: the list column is its own scroller
+    click('[data-cm-view="portfolio"]');
+    expect(has(list)).toBe(false);
+    expect(has(scroll)).toBe(false);
+    click('[data-cm-view="map"]');
+    expect(has(list)).toBe(true);
+    expect(has(scroll)).toBe(true);
+  });
+
+  it('puts the attribute back when desktop Portfolio crosses to mobile', () => {
+    const { root, list } = mount();
+    const media = fakeMatchMedia(true);
+    controller = initViewController(root, { matchMedia: media.matchMedia });
+    click('[data-cm-view="portfolio"]');
+    media.set(false);
+    expect(has(list)).toBe(true);
+  });
+
   it('sets the attribute again after init, destroy, init', () => {
     const { root, list, scroll } = mount();
     initViewController(root, { matchMedia: media() }).destroy();

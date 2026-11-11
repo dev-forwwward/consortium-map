@@ -1,9 +1,9 @@
 /* Leaflet layers sit above default stacking contexts; keep our overlays
    (loading/error states, modal) unambiguously on top. */
 .leaflet-container {
-  /* The filtered basemap's land colour (Positron #fafaf8 through .cm-tiles), so loading tiles don't
+  /* The filtered basemap's land colour (Voyager land through .cm-tiles), so loading tiles don't
      flash and any sub-pixel gap between tiles is invisible. */
-  background: var(--cm-map-land, #3b3b3b);
+  background: var(--cm-map-land, #3c3c3c);
   font-family: var(--font-body);
 }
 

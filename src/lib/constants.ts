@@ -4,10 +4,11 @@
 // erroring. See tileHealth.ts for the runtime detection that catches that.
 const CARTO_KEY = import.meta.env.VITE_CARTO_BASEMAP_KEY;
 
-// The light basemap (Positron), recoloured to the site's dark grey by a CSS
-// filter: see .cm-tiles in styles/shared.css.
+// A light basemap (Voyager: more roads, land use and terrain than Positron),
+// recoloured to the site's dark grey by a CSS filter: see .cm-tiles in
+// styles/shared.css.
 export const TILE_URL =
-  `https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}`;
+  `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}`;
 
 export const TILE_ATTRIBUTION =
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';

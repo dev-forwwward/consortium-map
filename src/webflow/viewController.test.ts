@@ -456,3 +456,83 @@ describe('double init', () => {
     warn.mockRestore();
   });
 });
+
+describe('ScrollTrigger refresh', () => {
+  // jsdom has no ResizeObserver: a fake that lets the test resize observed elements.
+  class FakeResizeObserver {
+    static all: FakeResizeObserver[] = [];
+    targets = new Set<Element>();
+    constructor(public callback: ResizeObserverCallback) {
+      FakeResizeObserver.all.push(this);
+    }
+    observe(target: Element) {
+      this.targets.add(target);
+    }
+    unobserve(target: Element) {
+      this.targets.delete(target);
+    }
+    disconnect() {
+      this.targets.clear();
+    }
+  }
+  const resize = (target: Element, height: number) => {
+    const entry = { target, contentRect: { height } } as unknown as ResizeObserverEntry;
+    FakeResizeObserver.all
+      .filter((observer) => observer.targets.has(target))
+      .forEach((observer) => observer.callback([entry], observer as unknown as ResizeObserver));
+  };
+
+  let root: HTMLElement;
+  let refresh: ReturnType<typeof vi.fn>;
+  beforeEach(() => {
+    vi.useFakeTimers();
+    FakeResizeObserver.all = [];
+    vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+    refresh = vi.fn();
+    (window as unknown as { ScrollTrigger?: unknown }).ScrollTrigger = { refresh };
+    root = mountDom();
+    controller = initViewController(root, { matchMedia: fakeMatchMedia(true).matchMedia });
+  });
+  afterEach(() => {
+    delete (window as unknown as { ScrollTrigger?: unknown }).ScrollTrigger;
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  it('recalculates the page triggers once the explorer height settles after a change', () => {
+    resize(root, 900); // first observation: the size at init
+    vi.runAllTimers();
+    expect(refresh).not.toHaveBeenCalled();
+
+    resize(root, 1700); // Map -> Portfolio
+    resize(root, 1750); // images loading
+    vi.advanceTimersByTime(100);
+    expect(refresh).not.toHaveBeenCalled();
+    vi.runAllTimers();
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('does nothing when the height is unchanged', () => {
+    resize(root, 900);
+    resize(root, 900);
+    vi.runAllTimers();
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it('is a no-op when the page has no ScrollTrigger', () => {
+    delete (window as unknown as { ScrollTrigger?: unknown }).ScrollTrigger;
+    resize(root, 900);
+    resize(root, 1700);
+    expect(() => vi.runAllTimers()).not.toThrow();
+  });
+
+  it('stops watching and drops a pending refresh on destroy', () => {
+    resize(root, 900);
+    resize(root, 1700);
+    controller.destroy();
+    vi.runAllTimers();
+    resize(root, 2000);
+    vi.runAllTimers();
+    expect(refresh).not.toHaveBeenCalled();
+  });
+});

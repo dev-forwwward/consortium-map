@@ -13,6 +13,11 @@ const DRAGGING_CLASS = 'is-sheet-dragging';
 // Longer than the sheet's CSS transition, in case transitionend never fires.
 const SHEET_SETTLE_FALLBACK_MS = 450;
 const OFFSET_VAR = '--cm-explorer-offset';
+// Waits for the explorer height to settle (class change, then images loading)
+// before asking ScrollTrigger to re-measure the whole page.
+const SCROLL_TRIGGER_REFRESH_MS = 150;
+
+type WindowWithScrollTrigger = Window & { ScrollTrigger?: { refresh(): void } };
 
 export interface ViewControllerOptions {
   matchMedia?: (query: string) => MediaQueryList;
@@ -71,6 +76,29 @@ export function initViewController(
   window.addEventListener('resize', measureOffset);
   document.fonts?.ready.then(measureOffset).catch(() => {});
   measureOffset();
+
+  // The site's GSAP ScrollTrigger (the next-up/footer pin below this section)
+  // measures its start/end scroll positions once. When the explorer's height
+  // changes (Map <-> Portfolio, grid <-> list, filters, images loading) those
+  // positions go stale: the pin fires early and the pinned section slides up
+  // under this one. Re-measure once the height has settled.
+  let lastHeight: number | null = null;
+  let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+  const heightObserver =
+    typeof ResizeObserver === 'undefined'
+      ? null
+      : new ResizeObserver((entries) => {
+          const height = Math.round(entries[entries.length - 1].contentRect.height);
+          const changed = lastHeight !== null && height !== lastHeight;
+          lastHeight = height;
+          if (!changed) return;
+          clearTimeout(refreshTimer);
+          refreshTimer = setTimeout(
+            () => (window as WindowWithScrollTrigger).ScrollTrigger?.refresh(),
+            SCROLL_TRIGGER_REFRESH_MS,
+          );
+        });
+  heightObserver?.observe(root);
 
   let state: ViewState = { ...DEFAULT_STATE };
 
@@ -232,6 +260,8 @@ export function initViewController(
       desktop.removeEventListener('change', onBreakpoint);
       window.removeEventListener('resize', measureOffset);
       offsetObserver?.disconnect();
+      heightObserver?.disconnect();
+      clearTimeout(refreshTimer);
       root.style.removeProperty(OFFSET_VAR);
       drag?.destroy();
       lenisAdded.forEach((el) => el.removeAttribute('data-lenis-prevent'));

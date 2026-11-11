@@ -5,6 +5,22 @@
   font-family: var(--font-body);
 }
 
+/* Bottom fade behind the page's Map/Portfolio pill. Off by default: the Webflow page turns it on through the
+   inherited custom property (webflow/view-modes.css). Above the map panes (tiles + markers, z-index 400) but below
+   the controls (z-index 1000), so the attribution stays readable on top of it. */
+.leaflet-container::after {
+  content: "";
+  display: var(--cm-map-fade-display, none);
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--cm-map-fade-h, 5.25rem);
+  background: linear-gradient(180deg, rgba(56, 55, 55, 0) 0%, var(--Neutral-Darker, #383737) 100%);
+  pointer-events: none;
+  z-index: 700;
+}
+
 .leaflet-control-attribution {
   background: rgba(15, 16, 18, 0.75) !important;
   color: var(--color-fog) !important;

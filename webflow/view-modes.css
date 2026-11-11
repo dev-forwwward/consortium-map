@@ -80,6 +80,8 @@
      100vh and the mount carries an inline min-height (600px). */
   .map-explorer:not(.is-portfolio) .map_embed { height: 100%; }
   .map-explorer:not(.is-portfolio) #consortium-map-root { min-height: 0 !important; }
+  /* Fade the map's bottom edge into the pill (drawn in the map's shadow CSS, src/styles/shared.css). */
+  .map-explorer:not(.is-portfolio) { --cm-map-fade-display: block; }
   .map-explorer_sheet-handle { display: none; }
   .layout-toggle { display: none; }
   .map-expand-button {

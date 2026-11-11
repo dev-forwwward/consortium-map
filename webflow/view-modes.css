@@ -144,20 +144,24 @@
   }
   .map-explorer.is-portfolio.is-list .map-explorer_items { grid-template-columns: 1fr; gap: 0; }
 
-  /* Portfolio cards, both layouts (Figma 3640:49690 grid, 3640:49773 list): beige mono tag, Medium
-     title, mono location. Hover keeps the Designer's .is-cm-hover colour but fades it in (the
-     Designer's own transition is invalid, so it snapped). */
-  .map-explorer.is-portfolio .map-explorer_items .project-card {
+  /* Cards (Figma 3640:49563 map list, 3640:49690 Portfolio grid, 3640:49773 Portfolio list): beige
+     mono tag, Medium title, mono location. Hover keeps the Designer's .is-cm-hover colour but fades
+     it in (the Designer's own transition is invalid, so it snapped). In Map view a marker hover sets
+     .is-cm-hover and a marker click .is-cm-active, so both get the same treatment. */
+  .map-explorer .map-explorer_items .project-card {
     border-left: 0;
-    transition: background-color 0.3s ease, padding 0.3s ease, margin 0.3s ease;
+    transition: background-color 0.3s ease, padding 0.3s ease, margin 0.3s ease, box-shadow 0.3s ease;
+    /* A marker click scrolls its card into view: leave room for the panel's outward growth. */
+    scroll-margin: 1rem;
   }
-  .map-explorer.is-portfolio .map-explorer_items .project-card:hover,
-  .map-explorer.is-portfolio .map-explorer_items .project-card.is-cm-hover,
-  .map-explorer.is-portfolio .project-card_link:focus-visible .project-card {
+  .map-explorer .map-explorer_items .project-card:hover,
+  .map-explorer .map-explorer_items .project-card.is-cm-hover,
+  .map-explorer .map-explorer_items .project-card.is-cm-active,
+  .map-explorer .project-card_link:focus-visible .project-card {
     background-color: var(--cm-card-hover-bg, #1a1b1e);
   }
-  .map-explorer.is-portfolio .project-card_tag,
-  .map-explorer.is-portfolio .project-card_tag-inline {
+  .map-explorer .project-card_tag,
+  .map-explorer .project-card_tag-inline {
     padding: 0.25rem;
     background-color: var(--_primitives---colors--beige, #ede5de);
     color: var(--_primitives---colors--neutral-darkest, #2b2b2b);
@@ -168,36 +172,44 @@
     letter-spacing: 0;
     text-box: trim-both cap alphabetic;
   }
-  .map-explorer.is-portfolio .project-card_name {
+  .map-explorer .project-card_name {
     font-weight: 500;
     color: var(--_primitives---colors--neutral-lightest, #f6f2ee);
   }
-  .map-explorer.is-portfolio .project-card_location {
+  .map-explorer .project-card_location {
     font-family: var(--_typography---font-styles--secondary-typeface, "JetBrains Mono", monospace);
     font-weight: 500;
     line-height: 1.3;
     letter-spacing: 0;
   }
 
-  /* Portfolio grid: 437:217 image, tag inset on it, 4px rhythm. Hover grows the panel outward
-     (padding + equal negative margin), so the content and the grid don't move. */
-  .map-explorer.is-portfolio:not(.is-list) .map-explorer_items .project-card { gap: 0.25rem; padding: 0; margin: 0; }
-  .map-explorer.is-portfolio:not(.is-list) .map-explorer_items .project-card:hover,
-  .map-explorer.is-portfolio:not(.is-list) .map-explorer_items .project-card.is-cm-hover,
-  .map-explorer.is-portfolio:not(.is-list) .project-card_link:focus-visible .project-card {
+  /* Card grids (map list + Portfolio grid; on desktop .is-list only exists in Portfolio): tag inset on
+     the image, 4px rhythm. Hover grows the panel outward (padding + equal negative margin), so the
+     content and the grid don't move. The selected marker's card also gets an orange edge. */
+  .map-explorer:not(.is-list) .map-explorer_items .project-card { gap: 0.25rem; padding: 0; margin: 0; }
+  .map-explorer:not(.is-list) .map-explorer_items .project-card:hover,
+  .map-explorer:not(.is-list) .map-explorer_items .project-card.is-cm-hover,
+  .map-explorer:not(.is-list) .map-explorer_items .project-card.is-cm-active,
+  .map-explorer:not(.is-list) .project-card_link:focus-visible .project-card {
     padding: var(--cm-card-hover-pad, 0.5rem);
     margin: calc(-1 * var(--cm-card-hover-pad, 0.5rem));
   }
-  .map-explorer.is-portfolio:not(.is-list) .map-explorer_items .project-card_image-wrap { aspect-ratio: 437 / 217; }
-  .map-explorer.is-portfolio:not(.is-list) .project-card_tag { top: 0.375rem; left: 0.3125rem; }
-  .map-explorer.is-portfolio:not(.is-list) .project-card_body { gap: 0.25rem; }
-  .map-explorer.is-portfolio:not(.is-list) .project-card_name { font-size: 1rem; line-height: 1.4; }
-  .map-explorer.is-portfolio:not(.is-list) .project-card_location {
+  .map-explorer .map-explorer_items .project-card.is-cm-active {
+    box-shadow: inset 3px 0 0 var(--_primitives---colors--orange, #ff6e3e);
+  }
+  .map-explorer:not(.is-list) .project-card_tag { top: 0.375rem; left: 0.3125rem; }
+  .map-explorer:not(.is-list) .project-card_body { gap: 0.25rem; }
+  .map-explorer:not(.is-list) .project-card_name { font-size: 1rem; line-height: 1.4; }
+  .map-explorer:not(.is-list) .project-card_location {
     font-size: 0.75rem;
     opacity: 0.7;
     color: var(--_primitives---colors--neutral-lightest, #f6f2ee);
     text-box: trim-both cap alphabetic;
   }
+  /* Map list (Figma 3640:49563): two columns, 12px gaps, 211.5:120 images (the base ratio). */
+  .map-explorer:not(.is-portfolio) .map-explorer_items { gap: 0.75rem; }
+  /* Portfolio grid (Figma 3640:49690): 437:217 images. */
+  .map-explorer.is-portfolio:not(.is-list) .map-explorer_items .project-card_image-wrap { aspect-ratio: 437 / 217; }
 
   /* Portfolio bottom fade (Figma 3640:49892): sticks to the viewport bottom under the pill while the
      section is in view. In flow after the explorer, pulled up by its own height so it adds none.

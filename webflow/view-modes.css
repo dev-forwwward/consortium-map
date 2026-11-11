@@ -9,6 +9,9 @@
 
 [data-cm-sheet] { --cm-sheet-peek: 72px; }
 
+/* No panel colour of its own: the page background shows behind the list (Designer sets #0e0f11). */
+.map-explorer { background: transparent; }
+
 /* Contain Leaflet's 400+ z-index panes so the pill, expand button and sheet paint above the map. */
 #consortium-map-root { position: relative; z-index: 0; isolation: isolate; }
 

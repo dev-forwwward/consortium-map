@@ -12,6 +12,7 @@ const LENIS_SELECTOR = '.map-explorer_scroll, .map-explorer_list';
 const DRAGGING_CLASS = 'is-sheet-dragging';
 // Longer than the sheet's CSS transition, in case transitionend never fires.
 const SHEET_SETTLE_FALLBACK_MS = 450;
+const OFFSET_VAR = '--cm-explorer-offset';
 
 export interface ViewControllerOptions {
   matchMedia?: (query: string) => MediaQueryList;
@@ -55,6 +56,21 @@ export function initViewController(
     el.setAttribute('data-lenis-prevent', '');
     lenisAdded.push(el);
   });
+
+  // Desktop: the explorer fills the viewport below whatever sits above it (nav,
+  // filter rows that wrap with width), so the whole map and its controls are on
+  // screen without scrolling. CSS reads the offset from --cm-explorer-offset.
+  const measureOffset = () => {
+    const top = root.getBoundingClientRect().top + window.scrollY;
+    root.style.setProperty(OFFSET_VAR, `${Math.max(0, Math.round(top))}px`);
+  };
+  const offsetObserver =
+    typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => measureOffset());
+  if (root.parentElement) offsetObserver?.observe(root.parentElement);
+  offsetObserver?.observe(document.body);
+  window.addEventListener('resize', measureOffset);
+  document.fonts?.ready.then(measureOffset).catch(() => {});
+  measureOffset();
 
   let state: ViewState = { ...DEFAULT_STATE };
 
@@ -214,6 +230,9 @@ export function initViewController(
       document.removeEventListener(SELECT_EVENT, onSelect);
       document.removeEventListener('keydown', onKeyDown);
       desktop.removeEventListener('change', onBreakpoint);
+      window.removeEventListener('resize', measureOffset);
+      offsetObserver?.disconnect();
+      root.style.removeProperty(OFFSET_VAR);
       drag?.destroy();
       lenisAdded.forEach((el) => el.removeAttribute('data-lenis-prevent'));
       delete root.dataset.cmViewInit;

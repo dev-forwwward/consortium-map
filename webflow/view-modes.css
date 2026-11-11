@@ -67,6 +67,16 @@
 
 @media (min-width: 992px) {
   .map-explorer { position: relative; }
+  /* Map view fits the viewport below the content above it (nav, filter rows),
+     so the whole map and its controls are visible without scrolling.
+     --cm-explorer-offset = the explorer's page top, measured by the embed. */
+  .map-explorer:not(.is-portfolio) {
+    height: max(calc(100vh - var(--cm-explorer-offset, 0px)), 20rem);
+  }
+  /* The map must follow that height: the Designer sizes its Embed wrapper at
+     100vh and the mount carries an inline min-height (600px). */
+  .map-explorer:not(.is-portfolio) .map_embed { height: 100%; }
+  .map-explorer:not(.is-portfolio) #consortium-map-root { min-height: 0 !important; }
   .map-explorer_sheet-handle { display: none; }
   .layout-toggle { display: none; }
   .map-expand-button {

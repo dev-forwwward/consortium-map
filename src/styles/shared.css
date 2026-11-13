@@ -31,6 +31,7 @@
 }
 
 .leaflet-control-zoom a {
+  font-family: var(--font-body); /* not Leaflet's default Lucida Console */
   background: var(--color-surface-raised) !important;
   color: var(--color-paper) !important;
   border-color: var(--color-surface-line) !important;

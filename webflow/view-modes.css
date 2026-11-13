@@ -37,6 +37,26 @@
 .project-card_link { display: block; color: inherit; text-decoration: none; }
 .project-card_tag-inline { display: none; }
 
+/* Filter fade-in. Finsweet's list removes filtered-out items from the DOM and re-inserts every
+   matching one on each render, and a CSS animation restarts on insertion, so this replays per
+   filter change (and on page load). Not Finsweet's .is-list-starting hook: it drops that class
+   ~1ms after insertion, often before a style recalc, so a transition can snap. Its
+   --fs-list-renderindex is gone ~10ms later, which would reset a live animation-delay, so the
+   stagger comes from :nth-child (the visible items are always the first N children). */
+@keyframes cm-card-in {
+  from { opacity: 0; transform: translateY(0.5rem); }
+}
+.map-explorer_items > .w-dyn-item {
+  animation: cm-card-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) var(--cm-card-delay, 0ms) backwards;
+}
+.map-explorer_items > .w-dyn-item:nth-child(2) { --cm-card-delay: 40ms; }
+.map-explorer_items > .w-dyn-item:nth-child(3) { --cm-card-delay: 80ms; }
+.map-explorer_items > .w-dyn-item:nth-child(4) { --cm-card-delay: 120ms; }
+.map-explorer_items > .w-dyn-item:nth-child(5) { --cm-card-delay: 160ms; }
+.map-explorer_items > .w-dyn-item:nth-child(6) { --cm-card-delay: 200ms; }
+.map-explorer_items > .w-dyn-item:nth-child(7) { --cm-card-delay: 240ms; }
+.map-explorer_items > .w-dyn-item:nth-child(n + 8) { --cm-card-delay: 280ms; }
+
 /* ---------- Cards: list rows ---------- */
 
 .map-explorer.is-list .map-explorer_items {
@@ -140,7 +160,7 @@
   .map-explorer.is-portfolio .layout-toggle { display: flex; }
   .map-explorer.is-portfolio .map-explorer_items {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1rem;
+    gap: 2rem 1rem;
   }
   .map-explorer.is-portfolio.is-list .map-explorer_items { grid-template-columns: 1fr; gap: 0; }
 
@@ -206,8 +226,10 @@
     color: var(--_primitives---colors--neutral-lightest, #f6f2ee);
     text-box: trim-both cap alphabetic;
   }
-  /* Map list (Figma 3640:49563): two columns, 12px gaps, 211.5:120 images (the base ratio). */
-  .map-explorer:not(.is-portfolio) .map-explorer_items { gap: 0.75rem; }
+  /* Map list (Figma 3640:49563): two columns, 12px column gap, 211.5:120 images (the base ratio).
+     Rows get 24px (not Figma's 12px) so a card's location line doesn't crowd the image below and
+     the hover panel's 8px outward growth keeps clear of the next row. */
+  .map-explorer:not(.is-portfolio) .map-explorer_items { gap: 1.5rem 0.75rem; }
   /* Portfolio grid (Figma 3640:49690): 437:217 images. */
   .map-explorer.is-portfolio:not(.is-list) .map-explorer_items .project-card_image-wrap { aspect-ratio: 437 / 217; }
 
@@ -435,4 +457,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   [data-cm-sheet] { transition: none; }
+  .map-explorer_items > .w-dyn-item { animation: none; }
 }

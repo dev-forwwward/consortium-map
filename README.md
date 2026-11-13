@@ -230,6 +230,8 @@ On mobile `.map-explorer` uses `overflow: clip` so it can never scroll; only the
 
 On `cm:select`, the controller brings the list back if the map is expanded (desktop) or opens the sheet to half if it is at peek (mobile), then scrolls the card into view.
 
+**Show more** (`src/webflow/showMore.ts`): desktop Portfolio shows the first 12 cards and a "Show more" button (created by the script, with the site's `.button` class) that reveals 12 more per click. Set `data-cm-page-size` on `.map-explorer` to change 12. Cards past the limit get `is-cm-paged`, which `view-modes.css` hides in Portfolio only; they stay in the DOM, and `cmsSource` ignores that class, so the map always has every filtered project. A filter change starts again from the first page.
+
 **CSS:** the Webflow Designer can't style a child based on a parent's combo class, so the state rules live in `webflow/view-modes.css`. `npm run build:embed` copies it to `dist-embed/consortium-map-v3-page.css`, which Vercel serves. The Projects page's "View modes CSS" Embed contains only `<link rel="stylesheet" href="https://consortium-map-embed-fwd-projects.vercel.app/consortium-map-v3-page.css">` plus the per-page variable block (`--cm-nav-h`, `--cm-chips-top`, etc.); a CSS change just needs a redeploy (the Embed's 10,000-char limit is why it is not pasted). The Embed's whole content:
 
 ```html

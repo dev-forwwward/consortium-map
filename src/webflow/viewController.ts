@@ -1,6 +1,7 @@
 import { SELECT_EVENT, findCmsItem } from '../lib/cmsSource';
 import { attachSheetDrag } from './sheetDrag';
 import { nextSnapOnTap } from './sheetSnap';
+import { attachShowMore } from './showMore';
 import { DEFAULT_STATE, applyClasses, syncControls, type ViewState } from './viewState';
 
 export const DESKTOP_QUERY = '(min-width: 992px)';
@@ -103,6 +104,10 @@ export function initViewController(
 
   let state: ViewState = { ...DEFAULT_STATE };
 
+  // Portfolio "Show more". A data-cm-page-size on the explorer overrides the page size.
+  const pageSize = Number(root.dataset.cmPageSize);
+  const showMore = attachShowMore(root, pageSize > 0 ? { pageSize } : {});
+
   // Desktop Portfolio: the page scrolls, not the list. An opted-out list there
   // sends wheel events over the cards to native scrolling while Lenis is still
   // easing from a wheel elsewhere; the two fight, so scroll is lost and the
@@ -116,6 +121,7 @@ export function initViewController(
     applyClasses(root, state, desktop.matches);
     syncControls(document, state, desktop.matches);
     syncLenisPrevent();
+    showMore?.sync(desktop.matches && state.view === 'portfolio');
   };
 
   const update = (next: Partial<ViewState>) => {
@@ -275,6 +281,7 @@ export function initViewController(
       clearTimeout(refreshTimer);
       root.style.removeProperty(OFFSET_VAR);
       drag?.destroy();
+      showMore?.destroy();
       lenisAdded.forEach((el) => el.removeAttribute('data-lenis-prevent'));
       delete root.dataset.cmViewInit;
     },

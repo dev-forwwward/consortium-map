@@ -13,6 +13,13 @@ export const ACTIVE_CLASS = 'is-cm-active';
 export const HOVER_CLASS = 'is-cm-hover';
 
 /**
+ * Set by the page's Show more (src/webflow/showMore.ts) on cards past the
+ * current page. Portfolio CSS hides them, but they are still in the filter's
+ * results, so the map keeps their markers.
+ */
+export const PAGED_CLASS = 'is-cm-paged';
+
+/**
  * Dispatched on `document` by the embed when a marker is clicked, with
  * `detail: { id }`. The page's view controller reveals and scrolls to the
  * matching card.
@@ -39,11 +46,14 @@ export function findCmsItem(id: string, root: ParentNode = document): HTMLElemen
  * An item counts as hidden only if it — or an ancestor inside the list — is
  * display:none / [hidden]. Deliberately not a getClientRects() check: on
  * mobile the whole list column may be toggled off while the map is showing,
- * and that must not empty the map.
+ * and that must not empty the map. Nor does Show more's paging (PAGED_CLASS):
+ * a paged-out card is display:none for the grid, not for the map.
  */
 function isFilteredOut(item: HTMLElement, list: HTMLElement): boolean {
   for (let node: HTMLElement | null = item; node && node !== list; node = node.parentElement) {
-    if (node.hidden || getComputedStyle(node).display === 'none') return true;
+    if (node.hidden) return true;
+    if (node.classList.contains(PAGED_CLASS)) continue;
+    if (getComputedStyle(node).display === 'none') return true;
   }
   return false;
 }

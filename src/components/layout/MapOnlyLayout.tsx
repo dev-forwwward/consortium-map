@@ -12,7 +12,7 @@ export function MapOnlyLayout() {
 
   return (
     <div className="relative h-full overflow-hidden bg-ink text-paper">
-      <MapPanel syncBounds={false} selectOnly />
+      <MapPanel syncBounds={false} selectOnly cooperativeWheel />
     </div>
   );
 }

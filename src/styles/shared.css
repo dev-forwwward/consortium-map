@@ -41,6 +41,38 @@
   background: var(--color-surface-line) !important;
 }
 
+/* "Use ⌘ + scroll to zoom the map" (CooperativeWheelZoom): over the tiles and markers, under the
+   Leaflet controls (z-index 1000); no pointer events, so dragging the map still works through it. */
+.cm-wheel-hint {
+  position: absolute;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--color-paper);
+  font-family: var(--font-body);
+  font-size: 20px;
+  line-height: 1.3;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.cm-wheel-hint.is-visible {
+  opacity: 1;
+  transition-duration: 150ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cm-wheel-hint {
+    transition: none;
+  }
+}
+
 @keyframes card-reveal {
   from {
     opacity: 0;

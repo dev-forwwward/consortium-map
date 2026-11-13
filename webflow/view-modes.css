@@ -287,10 +287,30 @@
     background-color: var(--_primitives---colors--neutral-darker, #383737);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
+  /* Hover: the panel reaches --cm-card-hover-pad past the thumbnail and the location, like the grid's
+     outward growth, so they don't sit on its edge. Two side-only shadows: no layout shift, and the
+     divider lines keep their length. */
   .map-explorer.is-portfolio.is-list .map-explorer_items .project-card:hover,
   .map-explorer.is-portfolio.is-list .map-explorer_items .project-card.is-cm-hover,
   .map-explorer.is-portfolio.is-list .project-card_link:focus-visible .project-card {
     background-color: var(--cm-card-hover-bg, #1a1b1e);
+    box-shadow:
+      calc(-1 * var(--cm-card-hover-pad, 0.5rem)) 0 0 var(--cm-card-hover-bg, #1a1b1e),
+      var(--cm-card-hover-pad, 0.5rem) 0 0 var(--cm-card-hover-bg, #1a1b1e);
+  }
+
+  /* Show more (src/webflow/showMore.ts): cards past the current page are hidden here only; the map
+     still has them. The button carries the site's .button class. */
+  .map-explorer.is-portfolio .map-explorer_items > .is-cm-paged { display: none; }
+  /* A revealed batch fades in at once, not held at the stagger's longest delay (cards 13+). */
+  .map-explorer_items.is-cm-revealing > .w-dyn-item { --cm-card-delay: 0ms; }
+  .cm-show-more { display: flex; justify-content: center; margin-top: 2.5rem; }
+  .cm-show-more[hidden] { display: none; }
+  .cm-show-more_button { cursor: pointer; border-radius: 0; }
+  .cm-show-more_button:hover,
+  .cm-show-more_button:focus-visible {
+    border-color: var(--_primitives---colors--neutral-lighter, #d4cdc6);
+    background-color: var(--_primitives---colors--neutral-lighter, #d4cdc6);
   }
   .map-explorer.is-portfolio.is-list .w-dyn-item:first-child .project-card { border-top: 1px solid rgba(255, 255, 255, 0.1); }
   .map-explorer.is-portfolio.is-list .project-card_body {

@@ -3,6 +3,7 @@ import { MapContainer, TileLayer } from 'react-leaflet';
 import { useMapExplorer } from '../../hooks/useMapExplorer';
 import { TILE_ATTRIBUTION, TILE_URL, DEFAULT_CENTER, DEFAULT_ZOOM } from '../../lib/constants';
 import { ClusterLayer } from './ClusterLayer';
+import { CooperativeWheelZoom } from './CooperativeWheelZoom';
 import { MapBoundsSync } from './MapBoundsSync';
 import { MapInvalidateOnShow } from './MapInvalidateOnShow';
 import { MapViewLimits } from './MapViewLimits';
@@ -15,14 +16,18 @@ import { probeTileSource } from '../../lib/tileHealth';
  * explorer). The Webflow embed turns it off: there the list is the CMS
  * Collection List, driven by the page's filter rather than the map.
  * `selectOnly` makes marker clicks highlight the CMS card instead of opening
- * the detail modal (see ClusterLayer).
+ * the detail modal (see ClusterLayer). `cooperativeWheel` is for a map inside
+ * a scrolling page: a plain wheel scrolls the page, Ctrl/⌘ + wheel zooms (see
+ * CooperativeWheelZoom).
  */
 export function MapPanel({
   syncBounds = true,
   selectOnly = false,
+  cooperativeWheel = false,
 }: {
   syncBounds?: boolean;
   selectOnly?: boolean;
+  cooperativeWheel?: boolean;
 }) {
   const { mapReady, setMapReady, mapError, setMapError, mapInstanceKey, retryMap } =
     useMapExplorer();
@@ -72,6 +77,7 @@ export function MapPanel({
             {syncBounds ? <MapBoundsSync /> : null}
             <MapInvalidateOnShow />
             <MapViewLimits />
+            {cooperativeWheel ? <CooperativeWheelZoom /> : null}
           </MapContainer>
         </MapErrorBoundary>
       )}

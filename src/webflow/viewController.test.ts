@@ -478,6 +478,44 @@ describe('double init', () => {
   });
 });
 
+describe('show more', () => {
+  const mountWithCards = (count: number) => {
+    const root = mountDom();
+    const cards = Array.from({ length: count }, () => '<div class="w-dyn-item"></div>').join('');
+    root.querySelector('[data-cm-list]')!.innerHTML = `<div class="map-explorer_items">${cards}</div>`;
+    return root;
+  };
+  const button = () => document.querySelector<HTMLElement>('.cm-show-more');
+
+  it('shows the button in desktop Portfolio only', () => {
+    const root = mountWithCards(20);
+    const media = fakeMatchMedia(true);
+    controller = initViewController(root, { matchMedia: media.matchMedia });
+    expect(button()!.hidden).toBe(true);
+    click('[data-cm-view="portfolio"]');
+    expect(button()!.hidden).toBe(false);
+    click('[data-cm-view="map"]');
+    expect(button()!.hidden).toBe(true);
+    click('[data-cm-view="portfolio"]');
+    media.set(false);
+    expect(button()!.hidden).toBe(true);
+  });
+
+  it('reads the page size from data-cm-page-size', () => {
+    const root = mountWithCards(20);
+    root.dataset.cmPageSize = '6';
+    controller = initViewController(root, { matchMedia: fakeMatchMedia(true).matchMedia });
+    click('[data-cm-view="portfolio"]');
+    expect(root.querySelectorAll('.w-dyn-item:not(.is-cm-paged)')).toHaveLength(6);
+  });
+
+  it('takes the button away on destroy', () => {
+    controller = initViewController(mountWithCards(20), { matchMedia: fakeMatchMedia(true).matchMedia });
+    controller.destroy();
+    expect(button()).toBeNull();
+  });
+});
+
 describe('ScrollTrigger refresh', () => {
   // jsdom has no ResizeObserver: a fake that lets the test resize observed elements.
   class FakeResizeObserver {

@@ -15,6 +15,32 @@
 /* Contain Leaflet's 400+ z-index panes so the pill, expand button and sheet paint above the map. */
 #consortium-map-root { position: relative; z-index: 0; isolation: isolate; }
 
+/* List scrollbar (desktop Map view scrolls .map-explorer_list, the mobile sheet .map-explorer_scroll):
+   thin, square, light-on-dark instead of the OS's light grey bar. Faint at rest, brighter while the
+   pointer is over the list. Standard properties where scrollbar-color exists (Chrome 121+, Firefox);
+   ::-webkit-scrollbar for Safari, which lacks it (Chrome ignores those once the standard ones are set). */
+.map-explorer_list,
+.map-explorer_scroll {
+  --cm-scrollbar-thumb: rgba(246, 242, 238, 0.18);
+}
+.map-explorer_list:hover,
+.map-explorer_scroll:hover {
+  --cm-scrollbar-thumb: rgba(246, 242, 238, 0.4);
+}
+@supports (scrollbar-color: auto) {
+  .map-explorer_list,
+  .map-explorer_scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--cm-scrollbar-thumb) transparent;
+  }
+}
+.map-explorer_list::-webkit-scrollbar,
+.map-explorer_scroll::-webkit-scrollbar { width: 6px; }
+.map-explorer_list::-webkit-scrollbar-track,
+.map-explorer_scroll::-webkit-scrollbar-track { background: transparent; }
+.map-explorer_list::-webkit-scrollbar-thumb,
+.map-explorer_scroll::-webkit-scrollbar-thumb { background: var(--cm-scrollbar-thumb); border-radius: 0; }
+
 /* ---------- Cards: grid by default (split list, portfolio, sheet) ---------- */
 
 .map-explorer_items {

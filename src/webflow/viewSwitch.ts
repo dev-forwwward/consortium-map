@@ -38,10 +38,16 @@ export function createViewSwitch(root: HTMLElement): ViewSwitch {
   let exitTimer: ReturnType<typeof setTimeout> | undefined;
   let scrollTimer: ReturnType<typeof setTimeout> | undefined;
 
-  const onScrollEnd = () => {
+  const scrollSettled = () => {
     scrollDone = true;
     stopWaitingForScroll();
     trySwap();
+  };
+
+  // Only the glide reaching the top counts: another scroll ending mid-glide
+  // (Lenis momentum, a scroll-into-view) would swap with the page still low.
+  const onScrollEnd = () => {
+    if (window.scrollY <= 1) scrollSettled();
   };
 
   const stopWaitingForScroll = () => {
@@ -80,7 +86,7 @@ export function createViewSwitch(root: HTMLElement): ViewSwitch {
       if (scrollToTop && scrollDone) {
         scrollDone = false;
         window.addEventListener('scrollend', onScrollEnd);
-        scrollTimer = setTimeout(onScrollEnd, SCROLL_SETTLE_CAP_MS);
+        scrollTimer = setTimeout(scrollSettled, SCROLL_SETTLE_CAP_MS);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     },

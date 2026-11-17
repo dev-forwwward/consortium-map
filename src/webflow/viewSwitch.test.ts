@@ -93,6 +93,20 @@ describe('viewSwitch', () => {
     expect(apply).toHaveBeenCalledTimes(1);
   });
 
+  it('ignores a scrollend that leaves the page away from the top', () => {
+    // Another scroll (Lenis momentum, scroll-into-view) ending mid-glide.
+    const apply = vi.fn();
+    viewSwitch.start(apply, { scrollToTop: true });
+    vi.advanceTimersByTime(EXIT_MS);
+    Object.defineProperty(window, 'scrollY', { value: 500, configurable: true });
+    scrollEnd();
+    expect(apply).not.toHaveBeenCalled();
+
+    Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
+    scrollEnd();
+    expect(apply).toHaveBeenCalledTimes(1);
+  });
+
   it('scrollend before the fade is done still waits for EXIT_MS', () => {
     const apply = vi.fn();
     viewSwitch.start(apply, { scrollToTop: true });

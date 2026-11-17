@@ -86,6 +86,9 @@ export function attachShowMore(
   return {
     sync(next) {
       active = next;
+      // A re-render (view switch) ends the reveal: left on, it would run every
+      // card's cascade at the same delay. Only touch it when set (see apply).
+      if (items.classList.contains(REVEALING_CLASS)) items.classList.remove(REVEALING_CLASS);
       apply();
     },
     destroy() {

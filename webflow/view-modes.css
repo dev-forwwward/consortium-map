@@ -83,6 +83,35 @@
 .map-explorer_items > .w-dyn-item:nth-child(7) { --cm-card-delay: 240ms; }
 .map-explorer_items > .w-dyn-item:nth-child(n + 8) { --cm-card-delay: 280ms; }
 
+/* ---------- View switch: fade out, then cascade in ----------
+   Desktop Portfolio <-> Map and grid <-> list (src/webflow/viewSwitch.ts). The explorer fades out
+   (is-cm-view-leaving; 150ms = EXIT_MS there), the layout swaps, then the list header, the cards
+   (80ms + the filter stagger above) and the map reveal in order. data-cm-enter alternates a/b on
+   every swap: an animation only restarts when its animation-name changes, so each value has its own
+   identical keyframes. Not scoped to desktop: the controller only sets these there, and an unscoped
+   card rule keeps a breakpoint change from replaying the cards. */
+@keyframes cm-enter-a {
+  from { opacity: 0; transform: translateY(0.5rem); }
+}
+@keyframes cm-enter-b {
+  from { opacity: 0; transform: translateY(0.5rem); }
+}
+.map-explorer { transition: opacity 150ms ease; }
+.map-explorer.is-cm-view-leaving { opacity: 0; }
+.map-explorer[data-cm-enter] .map-explorer_header {
+  animation: cm-enter-a 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.map-explorer[data-cm-enter] .map-explorer_items > .w-dyn-item {
+  animation-name: cm-enter-a;
+  animation-delay: calc(80ms + var(--cm-card-delay, 0ms));
+}
+.map-explorer[data-cm-enter] .map-explorer_map {
+  animation: cm-enter-a 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 240ms backwards;
+}
+.map-explorer[data-cm-enter="b"] .map-explorer_header,
+.map-explorer[data-cm-enter="b"] .map-explorer_items > .w-dyn-item,
+.map-explorer[data-cm-enter="b"] .map-explorer_map { animation-name: cm-enter-b; }
+
 /* ---------- Cards: list rows ---------- */
 
 .map-explorer.is-list .map-explorer_items {
@@ -504,4 +533,8 @@
 @media (prefers-reduced-motion: reduce) {
   [data-cm-sheet] { transition: none; }
   .map-explorer_items > .w-dyn-item { animation: none; }
+  .map-explorer { transition: none; }
+  .map-explorer[data-cm-enter] .map-explorer_header,
+  .map-explorer[data-cm-enter] .map-explorer_items > .w-dyn-item,
+  .map-explorer[data-cm-enter] .map-explorer_map { animation: none; }
 }

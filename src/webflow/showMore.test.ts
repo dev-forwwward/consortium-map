@@ -116,6 +116,16 @@ describe('show more', () => {
     expect(paged().some(Boolean)).toBe(false);
   });
 
+  it('a re-render ends the reveal stagger', () => {
+    showMore = attachShowMore(mount(8), { pageSize: 3 });
+    showMore!.sync(true);
+    button().click();
+    const grid = document.querySelector('.map-explorer_items')!;
+    expect(grid.classList.contains(REVEALING_CLASS)).toBe(true);
+    showMore!.sync(true);
+    expect(grid.classList.contains(REVEALING_CLASS)).toBe(false);
+  });
+
   it('does nothing on a page without the card grid', () => {
     document.body.innerHTML = '<div class="map-explorer"></div>';
     expect(attachShowMore(document.querySelector<HTMLElement>('.map-explorer')!)).toBeNull();

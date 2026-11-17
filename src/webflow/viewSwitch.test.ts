@@ -4,12 +4,19 @@ import {
   ENTER_ATTR,
   EXIT_MS,
   LEAVING_CLASS,
+  SCROLL_IDLE_MS,
   SCROLL_SETTLE_CAP_MS,
   createViewSwitch,
   type ViewSwitch,
 } from './viewSwitch';
 
 const scrollEnd = () => window.dispatchEvent(new Event('scrollend'));
+const setScrollY = (y: number) => Object.defineProperty(window, 'scrollY', { value: y, configurable: true });
+/** One frame of the glide: the page is at `y` and a scroll event fires. */
+const scrollFrame = (y: number) => {
+  setScrollY(y);
+  window.dispatchEvent(new Event('scroll'));
+};
 
 let root: HTMLElement;
 let viewSwitch: ViewSwitch;
@@ -25,6 +32,7 @@ beforeEach(() => {
 
 afterEach(() => {
   viewSwitch.destroy();
+  setScrollY(0);
   scrollTo.mockRestore();
   vi.useRealTimers();
 });
@@ -81,58 +89,101 @@ describe('viewSwitch', () => {
     expect(root.getAttribute(ENTER_ATTR)).toBeNull();
   });
 
-  it('waits for scrollend when scrolling to the top', () => {
+  it('waits for the glide to reach the top', () => {
     const apply = vi.fn();
     viewSwitch.start(apply, { scrollToTop: true });
     expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
 
-    vi.advanceTimersByTime(EXIT_MS);
+    for (const y of [900, 700, 500, 300]) {
+      vi.advanceTimersByTime(50);
+      scrollFrame(y);
+    }
     expect(apply).not.toHaveBeenCalled();
 
-    scrollEnd();
+    vi.advanceTimersByTime(50);
+    scrollFrame(0);
     expect(apply).toHaveBeenCalledTimes(1);
   });
 
-  it('ignores a scrollend that leaves the page away from the top', () => {
-    // Another scroll (Lenis momentum, scroll-into-view) ending mid-glide.
+  it('a glide longer than the old 800ms cap still swaps at the top', () => {
     const apply = vi.fn();
     viewSwitch.start(apply, { scrollToTop: true });
-    vi.advanceTimersByTime(EXIT_MS);
-    Object.defineProperty(window, 'scrollY', { value: 500, configurable: true });
-    scrollEnd();
+    for (let t = 50, y = 6000; t <= 1250; t += 50, y -= 240) {
+      vi.advanceTimersByTime(50);
+      scrollFrame(y);
+    }
     expect(apply).not.toHaveBeenCalled();
 
-    Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
-    scrollEnd();
+    vi.advanceTimersByTime(50);
+    scrollFrame(0);
     expect(apply).toHaveBeenCalledTimes(1);
   });
 
-  it('scrollend before the fade is done still waits for EXIT_MS', () => {
+  it('reaching the top before the fade is done still waits for EXIT_MS', () => {
     const apply = vi.fn();
     viewSwitch.start(apply, { scrollToTop: true });
     vi.advanceTimersByTime(100);
-    scrollEnd();
+    scrollFrame(0);
     expect(apply).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(EXIT_MS - 100);
     expect(apply).toHaveBeenCalledTimes(1);
   });
 
-  it('caps the scroll wait', () => {
+  it('settles when the glide stops away from the top', () => {
+    // Something else stopped it: Lenis, the visitor's wheel.
     const apply = vi.fn();
     viewSwitch.start(apply, { scrollToTop: true });
-    vi.advanceTimersByTime(SCROLL_SETTLE_CAP_MS - 1);
+    vi.advanceTimersByTime(50);
+    scrollFrame(800);
+    vi.advanceTimersByTime(50);
+    scrollFrame(500);
+    vi.advanceTimersByTime(SCROLL_IDLE_MS - 1);
     expect(apply).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(1);
     expect(apply).toHaveBeenCalledTimes(1);
   });
 
-  it('ignores scrollend when not scrolling', () => {
+  it('does not hang when the glide never starts', () => {
+    const apply = vi.fn();
+    viewSwitch.start(apply, { scrollToTop: true });
+    vi.advanceTimersByTime(Math.max(EXIT_MS, SCROLL_IDLE_MS));
+    expect(apply).toHaveBeenCalledTimes(1);
+  });
+
+  it('caps a glide that never reaches the top', () => {
+    const apply = vi.fn();
+    viewSwitch.start(apply, { scrollToTop: true });
+    let elapsed = 0;
+    while (elapsed < SCROLL_SETTLE_CAP_MS - 50) {
+      vi.advanceTimersByTime(50);
+      elapsed += 50;
+      scrollFrame(500);
+    }
+    vi.advanceTimersByTime(SCROLL_SETTLE_CAP_MS - 1 - elapsed);
+    expect(apply).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1);
+    expect(apply).toHaveBeenCalledTimes(1);
+  });
+
+  it('a stray scrollend mid-glide does not swap', () => {
+    const apply = vi.fn();
+    viewSwitch.start(apply, { scrollToTop: true });
+    for (const y of [900, 700, 500]) {
+      vi.advanceTimersByTime(50);
+      scrollFrame(y);
+    }
+    scrollEnd();
+    expect(apply).not.toHaveBeenCalled();
+  });
+
+  it('ignores scroll events when not scrolling', () => {
     const apply = vi.fn();
     viewSwitch.start(apply);
     vi.advanceTimersByTime(10);
-    scrollEnd();
+    scrollFrame(0);
     expect(apply).not.toHaveBeenCalled();
     expect(scrollTo).not.toHaveBeenCalled();
 
@@ -149,7 +200,7 @@ describe('viewSwitch', () => {
     viewSwitch.start(apply, { scrollToTop: true });
     viewSwitch.destroy();
     vi.advanceTimersByTime(1000);
-    scrollEnd();
+    scrollFrame(0);
     expect(apply).not.toHaveBeenCalled();
     expect(root.classList.contains(LEAVING_CLASS)).toBe(false);
     expect(root.hasAttribute(ENTER_ATTR)).toBe(false);

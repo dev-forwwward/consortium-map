@@ -741,10 +741,19 @@ describe('animated switch', () => {
     click('[data-cm-view="map"]');
     expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
 
-    vi.advanceTimersByTime(EXIT_MS);
+    // The glide: still low when the fade is done, so the layout waits.
+    const frame = (y: number) => {
+      Object.defineProperty(window, 'scrollY', { value: y, configurable: true });
+      window.dispatchEvent(new Event('scroll'));
+    };
+    for (const y of [1500, 1000, 500]) {
+      vi.advanceTimersByTime(EXIT_MS / 3);
+      frame(y);
+    }
     expect(root.classList.contains('is-portfolio')).toBe(true);
 
-    window.dispatchEvent(new Event('scrollend'));
+    vi.advanceTimersByTime(50);
+    frame(0);
     expect(root.className).toBe('map-explorer');
   });
 

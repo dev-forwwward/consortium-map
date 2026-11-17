@@ -4,8 +4,11 @@ export const LEAVING_CLASS = 'is-cm-view-leaving';
 export const ENTER_ATTR = 'data-cm-enter';
 /** Must match the `.map-explorer` opacity transition in webflow/view-modes.css. */
 export const EXIT_MS = 150;
-/** Longest wait for the scroll back up before swapping anyway (no scrollend, or Lenis). */
-export const SCROLL_SETTLE_CAP_MS = 800;
+/** The glide counts as stopped (by Lenis, the visitor) after this long without a scroll event. */
+export const SCROLL_IDLE_MS = 150;
+/** Longest wait for the glide back up before swapping anyway. Chromium's smooth scroll takes
+ *  longer the further it goes (~1.3s from 6000px), so this is a safety net, not the usual end. */
+export const SCROLL_SETTLE_CAP_MS = 2000;
 
 export interface ViewSwitch {
   /**
@@ -37,6 +40,7 @@ export function createViewSwitch(root: HTMLElement): ViewSwitch {
   let scrollDone = true;
   let exitTimer: ReturnType<typeof setTimeout> | undefined;
   let scrollTimer: ReturnType<typeof setTimeout> | undefined;
+  let idleTimer: ReturnType<typeof setTimeout> | undefined;
 
   const scrollSettled = () => {
     scrollDone = true;
@@ -44,15 +48,24 @@ export function createViewSwitch(root: HTMLElement): ViewSwitch {
     trySwap();
   };
 
-  // Only the glide reaching the top counts: another scroll ending mid-glide
-  // (Lenis momentum, a scroll-into-view) would swap with the page still low.
-  const onScrollEnd = () => {
+  const waitForIdle = () => {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(scrollSettled, SCROLL_IDLE_MS);
+  };
+
+  // Settled when the glide reaches the top, or once it has stopped short (no
+  // scroll event for SCROLL_IDLE_MS). Not on scrollend: another scroll ending
+  // mid-glide (Lenis momentum, a scroll-into-view) fires one with the page
+  // still low, and a fixed timeout cuts long glides short.
+  const onScroll = () => {
     if (window.scrollY <= 1) scrollSettled();
+    else waitForIdle();
   };
 
   const stopWaitingForScroll = () => {
-    window.removeEventListener('scrollend', onScrollEnd);
+    window.removeEventListener('scroll', onScroll);
     clearTimeout(scrollTimer);
+    clearTimeout(idleTimer);
   };
 
   const reset = () => {
@@ -85,7 +98,8 @@ export function createViewSwitch(root: HTMLElement): ViewSwitch {
       }
       if (scrollToTop && scrollDone) {
         scrollDone = false;
-        window.addEventListener('scrollend', onScrollEnd);
+        window.addEventListener('scroll', onScroll);
+        waitForIdle();
         scrollTimer = setTimeout(scrollSettled, SCROLL_SETTLE_CAP_MS);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }

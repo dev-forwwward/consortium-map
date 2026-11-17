@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SELECT_EVENT } from '../lib/cmsSource';
 import { DESKTOP_QUERY, initViewController, type ViewController } from './viewController';
+import { ENTER_ATTR, EXIT_MS, LEAVING_CLASS } from './viewSwitch';
 
 function fakeMatchMedia(initial: boolean) {
   const listeners = new Set<(event: MediaQueryListEvent) => void>();
@@ -593,5 +594,188 @@ describe('ScrollTrigger refresh', () => {
     resize(root, 2000);
     vi.runAllTimers();
     expect(refresh).not.toHaveBeenCalled();
+  });
+});
+
+describe('animated switch', () => {
+  /** Desktop and reduced-motion answers set separately (fakeMatchMedia answers every query alike). */
+  const mediaWith = ({ desktop, reduce }: { desktop: boolean; reduce: boolean }) =>
+    (query: string) =>
+      ({
+        matches: query === DESKTOP_QUERY ? desktop : reduce,
+        media: query,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      }) as unknown as MediaQueryList;
+
+  let root: HTMLElement;
+  let scrollTo: ReturnType<typeof vi.spyOn>;
+  const leaving = () => root.classList.contains(LEAVING_CLASS);
+  const enter = () => root.getAttribute(ENTER_ATTR);
+  const pressed = (selector: string) => document.querySelector(selector)!.getAttribute('aria-pressed');
+  const animated = (media = fakeMatchMedia(true).matchMedia) =>
+    initViewController(root, { matchMedia: media, prefersReducedMotion: () => false });
+
+  beforeEach(() => {
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout', 'requestAnimationFrame', 'cancelAnimationFrame'],
+    });
+    scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+    root = mountDom();
+  });
+
+  afterEach(() => {
+    controller?.destroy();
+    scrollTo.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it('fades out, then swaps to Portfolio', () => {
+    controller = animated();
+    click('[data-cm-view="portfolio"]');
+    expect(pressed('[data-cm-view="portfolio"]')).toBe('true');
+    expect(controller.getState().view).toBe('portfolio');
+    expect(leaving()).toBe(true);
+    expect(root.classList.contains('is-portfolio')).toBe(false);
+
+    vi.advanceTimersByTime(EXIT_MS);
+    expect(root.className).toBe('map-explorer is-portfolio');
+    expect(enter()).toBe('a');
+  });
+
+  it('animates the grid/list toggle in Portfolio', () => {
+    controller = animated();
+    click('[data-cm-view="portfolio"]');
+    vi.advanceTimersByTime(EXIT_MS);
+    click('[data-cm-layout="list"]');
+    expect(leaving()).toBe(true);
+    expect(root.classList.contains('is-list')).toBe(false);
+
+    vi.advanceTimersByTime(EXIT_MS);
+    expect(root.classList.contains('is-list')).toBe(true);
+    expect(enter()).toBe('b');
+  });
+
+  it('clicking back to the view on screen cancels', () => {
+    controller = animated();
+    click('[data-cm-view="portfolio"]');
+    vi.advanceTimersByTime(50);
+    click('[data-cm-view="map"]');
+    expect(leaving()).toBe(false);
+
+    vi.advanceTimersByTime(1000);
+    expect(root.className).toBe('map-explorer');
+    expect(enter()).toBeNull();
+    expect(pressed('[data-cm-view="map"]')).toBe('true');
+  });
+
+  it('three clicks within the exit end on the last view with one swap', () => {
+    controller = animated();
+    click('[data-cm-view="portfolio"]');
+    vi.advanceTimersByTime(30);
+    click('[data-cm-view="map"]');
+    vi.advanceTimersByTime(30);
+    click('[data-cm-view="portfolio"]');
+    vi.advanceTimersByTime(EXIT_MS);
+    expect(root.className).toBe('map-explorer is-portfolio');
+    expect(enter()).toBe('a');
+
+    vi.advanceTimersByTime(1000);
+    expect(enter()).toBe('a');
+  });
+
+  it('a layout click during the exit lands in the same swap', () => {
+    controller = animated();
+    click('[data-cm-view="portfolio"]');
+    vi.advanceTimersByTime(50);
+    click('[data-cm-layout="list"]');
+    vi.advanceTimersByTime(EXIT_MS - 50);
+    expect(root.className).toBe('map-explorer is-portfolio is-list');
+    expect(enter()).toBe('a');
+  });
+
+  it('keyboard activation animates too', () => {
+    document.body.insertAdjacentHTML(
+      'beforeend',
+      '<div role="button" tabindex="0" id="v" data-cm-view="portfolio"></div>',
+    );
+    controller = animated();
+    key('#v', 'Enter');
+    expect(leaving()).toBe(true);
+
+    vi.advanceTimersByTime(EXIT_MS);
+    expect(root.classList.contains('is-portfolio')).toBe(true);
+  });
+
+  it('expand button stays instant', () => {
+    controller = animated();
+    click('[data-cm-expand]');
+    expect(root.classList.contains('is-map-expanded')).toBe(true);
+    expect(leaving()).toBe(false);
+  });
+
+  it('mobile stays instant', () => {
+    controller = animated(fakeMatchMedia(false).matchMedia);
+    click('[data-cm-layout="list"]');
+    expect(root.className).toBe('map-explorer is-sheet-peek is-list');
+  });
+
+  it('reduced motion by default reads matchMedia', () => {
+    controller = initViewController(root, { matchMedia: mediaWith({ desktop: true, reduce: false }) });
+    click('[data-cm-view="portfolio"]');
+    expect(leaving()).toBe(true);
+    controller.destroy();
+
+    root = mountDom();
+    controller = initViewController(root, { matchMedia: mediaWith({ desktop: true, reduce: true }) });
+    click('[data-cm-view="portfolio"]');
+    expect(leaving()).toBe(false);
+    expect(root.classList.contains('is-portfolio')).toBe(true);
+  });
+
+  it('scrolls up first when going to Map from deep in Portfolio', () => {
+    controller = animated();
+    click('[data-cm-view="portfolio"]');
+    vi.advanceTimersByTime(EXIT_MS);
+    root.getBoundingClientRect = () => ({ top: -500 }) as DOMRect;
+    click('[data-cm-view="map"]');
+    expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
+
+    vi.advanceTimersByTime(EXIT_MS);
+    expect(root.classList.contains('is-portfolio')).toBe(true);
+
+    window.dispatchEvent(new Event('scrollend'));
+    expect(root.className).toBe('map-explorer');
+  });
+
+  it('does not scroll when the explorer top is in view', () => {
+    controller = animated();
+    click('[data-cm-view="portfolio"]');
+    vi.advanceTimersByTime(EXIT_MS);
+    root.getBoundingClientRect = () => ({ top: 120 }) as DOMRect;
+    click('[data-cm-view="map"]');
+    expect(scrollTo).not.toHaveBeenCalled();
+  });
+
+  it('breakpoint change mid-switch renders at once', () => {
+    const media = fakeMatchMedia(true);
+    controller = animated(media.matchMedia);
+    click('[data-cm-view="portfolio"]');
+    media.set(false);
+    expect(root.className).toBe('map-explorer is-sheet-peek');
+    expect(leaving()).toBe(false);
+
+    vi.advanceTimersByTime(1000);
+    expect(root.className).toBe('map-explorer is-sheet-peek');
+  });
+
+  it('destroy mid-switch leaves nothing behind', () => {
+    controller = animated();
+    click('[data-cm-view="portfolio"]');
+    controller.destroy();
+    vi.advanceTimersByTime(1000);
+    expect(root.classList.contains('is-portfolio')).toBe(false);
+    expect(leaving()).toBe(false);
+    expect(root.hasAttribute(ENTER_ATTR)).toBe(false);
   });
 });

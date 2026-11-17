@@ -2,7 +2,8 @@ import { SELECT_EVENT, findCmsItem } from '../lib/cmsSource';
 import { attachSheetDrag } from './sheetDrag';
 import { nextSnapOnTap } from './sheetSnap';
 import { attachShowMore } from './showMore';
-import { DEFAULT_STATE, applyClasses, syncControls, type ViewState } from './viewState';
+import { DEFAULT_STATE, applyClasses, classesFor, syncControls, type ViewState } from './viewState';
+import { createViewSwitch } from './viewSwitch';
 
 export const DESKTOP_QUERY = '(min-width: 992px)';
 
@@ -43,8 +44,7 @@ export function initViewController(
 ): ViewController {
   const matchMedia = options.matchMedia ?? ((query: string) => window.matchMedia(query));
   const prefersReducedMotion =
-    options.prefersReducedMotion ??
-    (() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    options.prefersReducedMotion ?? (() => matchMedia('(prefers-reduced-motion: reduce)').matches);
   if (root.dataset.cmViewInit === 'true') {
     console.warn('initViewController: already initialised on this element; ignoring.');
     return { getState: () => ({ ...DEFAULT_STATE }), destroy() {} };
@@ -103,6 +103,9 @@ export function initViewController(
   heightObserver?.observe(root);
 
   let state: ViewState = { ...DEFAULT_STATE };
+  // The state the DOM shows. Lags `state` while a desktop switch fades out.
+  let shown: ViewState = { ...state };
+  const viewSwitch = createViewSwitch(root);
 
   // Portfolio "Show more". A data-cm-page-size on the explorer overrides the page size.
   const pageSize = Number(root.dataset.cmPageSize);
@@ -117,16 +120,44 @@ export function initViewController(
     lenisAdded.forEach((el) => el.toggleAttribute('data-lenis-prevent', listScrolls));
   };
 
-  const render = () => {
+  const renderControls = () => syncControls(document, state, desktop.matches);
+
+  const applyLayout = () => {
     applyClasses(root, state, desktop.matches);
-    syncControls(document, state, desktop.matches);
     syncLenisPrevent();
     showMore?.sync(desktop.matches && state.view === 'portfolio');
+    shown = { ...state };
   };
+
+  const render = () => {
+    applyLayout();
+    renderControls();
+  };
+
+  const sameLayout = (a: ViewState, b: ViewState) =>
+    classesFor(a, true).join(' ') === classesFor(b, true).join(' ');
+
+  // Desktop Portfolio <-> Map and grid <-> list fade out, then cascade in
+  // (src/webflow/viewSwitch.ts). The expand button, mobile and reduced motion
+  // stay instant.
+  const animates = () =>
+    desktop.matches &&
+    !prefersReducedMotion() &&
+    (state.view !== shown.view || (state.view === 'portfolio' && state.layout !== shown.layout));
 
   const update = (next: Partial<ViewState>) => {
     state = { ...state, ...next };
-    render();
+    renderControls();
+    if (viewSwitch.pending && sameLayout(state, shown)) {
+      viewSwitch.cancel();
+    } else if (viewSwitch.pending || animates()) {
+      // Going to Map from deep in Portfolio: glide up first, or the page
+      // jumps when the explorer shrinks to the viewport.
+      const scrollToTop = state.view === 'map' && root.getBoundingClientRect().top < 0;
+      viewSwitch.start(applyLayout, { scrollToTop });
+    } else {
+      applyLayout();
+    }
   };
 
   const activate = (control: Element) => {
@@ -195,6 +226,7 @@ export function initViewController(
   };
 
   const onBreakpoint = () => {
+    viewSwitch.cancel();
     clearDrag();
     state = { ...DEFAULT_STATE, layout: state.layout };
     render();
@@ -282,6 +314,7 @@ export function initViewController(
       root.style.removeProperty(OFFSET_VAR);
       drag?.destroy();
       showMore?.destroy();
+      viewSwitch.destroy();
       lenisAdded.forEach((el) => el.removeAttribute('data-lenis-prevent'));
       delete root.dataset.cmViewInit;
     },

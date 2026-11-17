@@ -97,7 +97,8 @@
   from { opacity: 0; transform: translateY(0.5rem); }
 }
 .map-explorer { transition: opacity 150ms ease; }
-.map-explorer.is-cm-view-leaving { opacity: 0; }
+/* Invisible but still links: no clicks while faded out (the pill sits outside the explorer). */
+.map-explorer.is-cm-view-leaving { opacity: 0; pointer-events: none; }
 .map-explorer[data-cm-enter] .map-explorer_header {
   animation: cm-enter-a 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
 }

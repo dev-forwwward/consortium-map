@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SELECT_EVENT } from '../lib/cmsSource';
 import { DESKTOP_QUERY, initViewController, type ViewController } from './viewController';
+import { FLIP_ID } from './flip';
 import { ENTER_ATTR, EXIT_MS, LEAVING_CLASS } from './viewSwitch';
 
 function fakeMatchMedia(initial: boolean) {
@@ -776,6 +777,50 @@ describe('animated switch', () => {
 
     vi.advanceTimersByTime(1000);
     expect(root.className).toBe('map-explorer is-sheet-peek');
+  });
+
+  /** The pill: centred on the map column in split Map view, on the page otherwise. */
+  const stubPill = () => {
+    const pill = document.querySelector<HTMLElement>('.map-view-toggle')!;
+    const centred = () =>
+      root.classList.contains('is-portfolio') || root.classList.contains('is-map-expanded');
+    pill.getBoundingClientRect = () =>
+      ({ left: centred() ? 300 : 800, top: 850, width: 200, height: 33 }) as DOMRect;
+    const animate = vi.fn();
+    pill.animate = animate as unknown as Element['animate'];
+    return animate;
+  };
+
+  it('slides the pill to its Portfolio spot at the swap, not on click', () => {
+    controller = animated();
+    const animate = stubPill();
+    click('[data-cm-view="portfolio"]');
+    expect(animate).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(EXIT_MS);
+    expect(animate).toHaveBeenCalledTimes(1);
+    expect(animate).toHaveBeenCalledWith(
+      [{ translate: '500px 0px' }, { translate: '0px 0px' }],
+      expect.objectContaining({ id: FLIP_ID }),
+    );
+  });
+
+  it('slides the pill when the map expands', () => {
+    controller = animated();
+    const animate = stubPill();
+    click('[data-cm-expand]');
+    expect(animate).toHaveBeenCalledWith(
+      [{ translate: '500px 0px' }, { translate: '0px 0px' }],
+      expect.objectContaining({ id: FLIP_ID }),
+    );
+  });
+
+  it('does not slide the pill with reduced motion', () => {
+    controller = initViewController(root, { matchMedia: mediaWith({ desktop: true, reduce: true }) });
+    const animate = stubPill();
+    click('[data-cm-view="portfolio"]');
+    click('[data-cm-expand]');
+    expect(animate).not.toHaveBeenCalled();
   });
 
   it('destroy mid-switch leaves nothing behind', () => {

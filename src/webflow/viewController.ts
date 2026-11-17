@@ -1,4 +1,5 @@
 import { SELECT_EVENT, findCmsItem } from '../lib/cmsSource';
+import { flip } from './flip';
 import { attachSheetDrag } from './sheetDrag';
 import { nextSnapOnTap } from './sheetSnap';
 import { attachShowMore } from './showMore';
@@ -11,6 +12,11 @@ const CONTROL_SELECTOR = '[data-cm-view], [data-cm-layout], [data-cm-expand]';
 const HANDLE_SELECTOR = '[data-cm-sheet-handle]';
 const SHEET_SELECTOR = '[data-cm-sheet]';
 const LENIS_SELECTOR = '.map-explorer_scroll, .map-explorer_list';
+// The Portfolio/Map pill: centred on the map column in split Map view, on the
+// page in Portfolio and expanded. It slides between the two (same easing as
+// the cascade in webflow/view-modes.css).
+const PILL_SELECTOR = '.map-view-toggle';
+const PILL_SLIDE = { duration: 600, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' };
 const DRAGGING_CLASS = 'is-sheet-dragging';
 // Longer than the sheet's CSS transition, in case transitionend never fires.
 const SHEET_SETTLE_FALLBACK_MS = 450;
@@ -123,9 +129,19 @@ export function initViewController(
   const renderControls = () => syncControls(document, state, desktop.matches);
 
   const applyLayout = () => {
-    applyClasses(root, state, desktop.matches);
-    syncLenisPrevent();
-    showMore?.sync(desktop.matches && state.view === 'portfolio');
+    const pills =
+      desktop.matches && !prefersReducedMotion()
+        ? document.querySelectorAll<HTMLElement>(PILL_SELECTOR)
+        : [];
+    flip(
+      pills,
+      () => {
+        applyClasses(root, state, desktop.matches);
+        syncLenisPrevent();
+        showMore?.sync(desktop.matches && state.view === 'portfolio');
+      },
+      PILL_SLIDE,
+    );
     shown = { ...state };
   };
 

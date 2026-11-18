@@ -193,8 +193,26 @@
     margin-bottom: 0;
   }
 
-  /* Expanded: list out, map takes the full width. */
-  .map-explorer.is-map-expanded .map-explorer_list { display: none; }
+  /* Expanded: list out, map takes the full width, smoothly. The list keeps its width and slides out
+     left (a negative margin of its own outer width, --cm-list-w) while fading, so the map's left edge
+     sweeps across with it; Leaflet re-measures as it grows. Not display:none, which can't animate.
+     The explorer clips the list past its left edge (the cards' hover panel sits inside the list's
+     padding). Visibility goes last on the way out and first on the way back: no hidden-but-focusable
+     list, no invisible clicks. The pill slides with it (src/webflow/flip.ts). */
+  .map-explorer:not(.is-portfolio) { overflow-x: clip; }
+  /* Map view only: switching expanded -> Portfolio would slide the full-width list in from the left. */
+  .map-explorer:not(.is-portfolio) .map-explorer_list {
+    transition-property: margin-left, opacity, visibility;
+    transition-duration: 0.6s, 0.35s, 0s;
+    transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1), ease, linear;
+    transition-delay: 0s, 0.1s, 0s;
+  }
+  .map-explorer.is-map-expanded .map-explorer_list {
+    margin-left: calc(-1 * var(--cm-list-w, 30rem));
+    opacity: 0;
+    visibility: hidden;
+    transition-delay: 0s, 0s, 0.6s;
+  }
 
   /* Portfolio: list full width; map stays mounted but hidden and out of flow.
      Never display:none — a 0x0 Leaflet container corrupts its bounds. */
@@ -535,6 +553,7 @@
   [data-cm-sheet] { transition: none; }
   .map-explorer_items > .w-dyn-item { animation: none; }
   .map-explorer { transition: none; }
+  .map-explorer:not(.is-portfolio) .map-explorer_list { transition: none; }
   .map-explorer[data-cm-enter] .map-explorer_header,
   .map-explorer[data-cm-enter] .map-explorer_items > .w-dyn-item,
   .map-explorer[data-cm-enter] .map-explorer_map { animation: none; }

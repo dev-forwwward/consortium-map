@@ -279,7 +279,7 @@
 
   /* Card grids (map list + Portfolio grid; on desktop .is-list only exists in Portfolio): tag inset on
      the image, 4px rhythm. Hover grows the panel outward (padding + equal negative margin), so the
-     content and the grid don't move. The selected marker's card also gets an orange edge. */
+     content and the grid don't move. The selected marker's card fills orange instead. */
   .map-explorer:not(.is-list) .map-explorer_items .project-card { gap: 0.25rem; padding: 0; margin: 0; }
   .map-explorer:not(.is-list) .map-explorer_items .project-card:hover,
   .map-explorer:not(.is-list) .map-explorer_items .project-card.is-cm-hover,
@@ -288,8 +288,9 @@
     padding: var(--cm-card-hover-pad, 0.5rem);
     margin: calc(-1 * var(--cm-card-hover-pad, 0.5rem));
   }
+  /* After the hover rules: stays orange while hovered. The title and location keep their light colours. */
   .map-explorer .map-explorer_items .project-card.is-cm-active {
-    box-shadow: inset 3px 0 0 var(--_primitives---colors--orange, #ff6e3e);
+    background-color: var(--_primitives---colors--orange, #ff6e3e);
   }
   .map-explorer:not(.is-list) .project-card_tag { top: 0.375rem; left: 0.3125rem; }
   .map-explorer:not(.is-list) .project-card_body { gap: 0.25rem; }

@@ -71,6 +71,17 @@ describe('view-modes.css on desktop', () => {
     expect(getComputedStyle(list).transitionProperty).not.toContain('margin-left');
   });
 
+  it('the selected marker\'s card fills orange, also while hovered', () => {
+    // A thin orange edge on the dark hover panel read as hover, not as the selection.
+    document.body.innerHTML = `
+      <div class="map-explorer">
+        <div class="map-explorer_items"><div class="project-card is-cm-active is-cm-hover"></div></div>
+      </div>`;
+    const card = document.querySelector('.project-card')!;
+    expect(getComputedStyle(card).backgroundColor).toContain('--_primitives---colors--orange');
+    expect(getComputedStyle(card).boxShadow).not.toContain('inset');
+  });
+
   it('the split map shows the list in place', () => {
     document.body.innerHTML = `
       <div class="map-explorer">

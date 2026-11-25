@@ -65,9 +65,21 @@
 
 /* Map View (desktop) and the mobile sheet list only the cards with a pin inside the map's view
    (src/components/map/CmsViewportFilter.tsx). Portfolio hides the map, so it lists everything.
-   The map still has the hidden cards' pins. */
-.map-explorer:not(.is-portfolio) .map-explorer_items > .is-cm-offmap { display: none; }
-.cm-offmap-empty { margin: 1.5rem 0 0; opacity: 0.6; }
+   The map still has the hidden cards' pins.
+   A card leaving fades out, then drops out of the layout: display is transitioned discretely, so it
+   flips to none at the end of the fade (browsers without allow-discrete just hide it at once). A
+   card coming back fades in through cm-card-in above, which replays whenever display comes back. */
+.map-explorer:not(.is-portfolio) .map-explorer_items > .is-cm-offmap {
+  display: none;
+  opacity: 0;
+  transition: opacity 0.25s ease, display 0.25s allow-discrete;
+}
+/* Shown once the last cards have faded out. */
+.cm-offmap-empty {
+  margin: 1.5rem 0 0;
+  opacity: 0.6;
+  animation: cm-card-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.25s backwards;
+}
 .map-explorer.is-portfolio .cm-offmap-empty { display: none; }
 
 /* Filter fade-in. Finsweet's list removes filtered-out items from the DOM and re-inserts every
@@ -560,6 +572,8 @@
 @media (prefers-reduced-motion: reduce) {
   [data-cm-sheet] { transition: none; }
   .map-explorer_items > .w-dyn-item { animation: none; }
+  .map-explorer:not(.is-portfolio) .map-explorer_items > .is-cm-offmap { transition: none; }
+  .cm-offmap-empty { animation: none; }
   .map-explorer { transition: none; }
   .map-explorer:not(.is-portfolio) .map-explorer_list { transition: none; }
   .map-explorer[data-cm-enter] .map-explorer_header,

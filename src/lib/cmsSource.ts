@@ -9,6 +9,18 @@ import type { Location } from '../types/location';
 export const LIST_SELECTOR = '[data-cm-list]';
 export const ITEM_SELECTOR = '[data-cm-item]';
 
+/**
+ * One map pin of a card that has several (e.g. a franchise's buildings): a
+ * nested Collection List in the card's Collection Item (beside the card's
+ * Link Block, since Webflow won't put a Collection List inside a link) renders
+ * one POINT_SELECTOR element
+ * per building, its values in `data-cm-point-field="<key>"` children (lat,
+ * lng, location, id). A separate attribute from `data-cm-field` so the card's
+ * own fields never pick up a nested value. A card with at least one valid
+ * point gets one pin per point instead of its own.
+ */
+export const POINT_SELECTOR = '[data-cm-point]';
+
 export const ACTIVE_CLASS = 'is-cm-active';
 export const HOVER_CLASS = 'is-cm-hover';
 
@@ -90,11 +102,61 @@ function readField(item: HTMLElement, key: string): string | undefined {
   return value?.trim() || undefined;
 }
 
-/** "Brentwood, TN" → { city: "Brentwood", state: "TN" }; no comma → all city. */
-function splitLocation(location: string): { city: string; state: string } {
+/**
+ * "Brentwood, TN" or "Milford MI" → { city, state }. Without a comma, a
+ * trailing two-letter uppercase word is the state; otherwise it's all city.
+ */
+export function splitLocation(location: string): { city: string; state: string } {
   const comma = location.lastIndexOf(',');
-  if (comma === -1) return { city: location.trim(), state: '' };
-  return { city: location.slice(0, comma).trim(), state: location.slice(comma + 1).trim() };
+  if (comma !== -1) {
+    return { city: location.slice(0, comma).trim(), state: location.slice(comma + 1).trim() };
+  }
+  const match = /^(.*\S)\s+([A-Z]{2})$/.exec(location.trim());
+  if (match) return { city: match[1], state: match[2] };
+  return { city: location.trim(), state: '' };
+}
+
+function readPointField(point: HTMLElement, key: string): string | undefined {
+  const attr = point.getAttribute(`data-cm-point-${key}`);
+  if (attr != null && attr !== '') return attr;
+  const el = point.querySelector<HTMLElement>(`[data-cm-point-field="${key}"]`);
+  return el?.textContent?.trim() || undefined;
+}
+
+function validCoordinates(latitude: number | null, longitude: number | null): boolean {
+  return (
+    latitude != null && longitude != null && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180
+  );
+}
+
+/**
+ * The card's points that have usable coordinates. A point with a bad or
+ * missing coordinate is skipped with a warning; the others still show.
+ */
+function readPoints(item: HTMLElement, cardId: string, cardName: string | undefined) {
+  const points: { id: string; latitude: number; longitude: number; location?: string }[] = [];
+  const seen = new Set<string>();
+  // The card's own Collection Item: the card is never inside a nested list,
+  // so the nearest .w-dyn-item is the right one.
+  const scope = item.closest<HTMLElement>('.w-dyn-item') ?? item;
+  scope.querySelectorAll<HTMLElement>(POINT_SELECTOR).forEach((point, index) => {
+    const id = readPointField(point, 'id') ?? String(index);
+    const latitude = parseCoordinate(readPointField(point, 'lat'));
+    const longitude = parseCoordinate(readPointField(point, 'lng'));
+    if (latitude == null && longitude == null) return; // not placed yet: silently off the map
+    if (latitude == null || longitude == null || !validCoordinates(latitude, longitude)) {
+      warnOnce(
+        `point:${cardId}:${id}`,
+        `skipping a pin of "${cardName ?? cardId}" (${id}) — ` +
+          `invalid coordinates (${latitude}, ${longitude})`,
+      );
+      return;
+    }
+    if (seen.has(id)) return;
+    seen.add(id);
+    points.push({ id, latitude, longitude, location: readPointField(point, 'location') });
+  });
+  return points;
 }
 
 /**
@@ -112,6 +174,27 @@ export function readCmsLocations(list: HTMLElement): Location[] {
 
     const id = readField(item, 'id');
     const name = readField(item, 'name');
+
+    const points = id ? readPoints(item, id, name) : [];
+    if (id && points.length > 0) {
+      if (seen.has(id)) return;
+      seen.add(id);
+      const card = readCard(item, id, name);
+      for (const point of points) {
+        const place = point.location ? splitLocation(point.location) : null;
+        locations.push({
+          ...card,
+          id: `${id}::${point.id}`,
+          cardId: id,
+          city: place ? place.city : card.city,
+          state: place ? place.state : card.state,
+          latitude: point.latitude,
+          longitude: point.longitude,
+        });
+      }
+      return;
+    }
+
     const latitude = parseCoordinate(readField(item, 'lat'));
     const longitude = parseCoordinate(readField(item, 'lng'));
 
@@ -134,23 +217,25 @@ export function readCmsLocations(list: HTMLElement): Location[] {
     if (seen.has(id)) return;
     seen.add(id);
 
-    const location = readField(item, 'location');
-    const { city, state } = location
-      ? splitLocation(location)
-      : { city: readField(item, 'city') ?? '', state: readField(item, 'state') ?? '' };
-
-    locations.push({
-      id,
-      name: name ?? '',
-      category: readField(item, 'category') ?? '',
-      city,
-      state,
-      image: readField(item, 'image') ?? '',
-      latitude,
-      longitude,
-      url: readField(item, 'url'),
-    });
+    locations.push({ ...readCard(item, id, name), latitude, longitude });
   });
 
   return locations;
+}
+
+/** A card's fields other than its coordinates. */
+function readCard(item: HTMLElement, id: string, name: string | undefined) {
+  const location = readField(item, 'location');
+  const { city, state } = location
+    ? splitLocation(location)
+    : { city: readField(item, 'city') ?? '', state: readField(item, 'state') ?? '' };
+  return {
+    id,
+    name: name ?? '',
+    category: readField(item, 'category') ?? '',
+    city,
+    state,
+    image: readField(item, 'image') ?? '',
+    url: readField(item, 'url'),
+  };
 }

@@ -143,6 +143,37 @@
         </div>
         <div class="w-dyn-list" data-cm-list="true">
           <div role="list" class="w-dyn-items map-explorer_items" fs-list-element="list">
+          <!-- One card, several pins: Works → Buildings nested list (data-cm-point). -->
+          <div role="listitem" class="w-dyn-item">
+            <a class="project-card_link" href="/work/back-nine">
+            <div class="project-card" data-cm-item="true">
+              <div class="project-card_image-wrap">
+                <img class="project-card_image" data-cm-field="image" src="https://picsum.photos/seed/cm-b9/320/220" alt="Back Nine" />
+                <div class="project-card_tag" fs-list-field="category" data-cm-field="category">Franchise Design</div>
+              </div>
+              <div class="project-card_body">
+                <div class="project-card_name" data-cm-field="name">Back Nine</div>
+                <div class="project-card_tag-inline">Franchise Design</div>
+                <div class="project-card_location w-dyn-bind-empty" data-cm-field="location"></div>
+              </div>
+              <div class="cm-data">
+                <div data-cm-field="id">back-nine</div>
+                <div data-cm-field="lat" class="w-dyn-bind-empty"></div>
+                <div data-cm-field="lng" class="w-dyn-bind-empty"></div>
+              </div>
+            </div>
+            </a>
+            <div class="cm-data" data-cm-points="true">
+                <div class="w-dyn-list"><div role="list" class="w-dyn-items">
+                  <div role="listitem" class="w-dyn-item" data-cm-point="true"><div data-cm-point-field="id">ti-01</div><div data-cm-point-field="lat">34.120638</div><div data-cm-point-field="lng">-83.823142</div><div data-cm-point-field="location">Braselton GA</div></div>
+                  <div role="listitem" class="w-dyn-item" data-cm-point="true"><div data-cm-point-field="id">ti-02</div><div data-cm-point-field="lat">30.223430</div><div data-cm-point-field="lng">-95.559975</div><div data-cm-point-field="location">Magnolia TX</div></div>
+                  <div role="listitem" class="w-dyn-item" data-cm-point="true"><div data-cm-point-field="id">ti-04</div><div data-cm-point-field="lat">41.760974</div><div data-cm-point-field="lng">-93.565944</div><div data-cm-point-field="location">Ankeny IA</div></div>
+                  <div role="listitem" class="w-dyn-item" data-cm-point="true"><div data-cm-point-field="id">ti-30</div><div data-cm-point-field="lat">32.954150</div><div data-cm-point-field="lng">-117.057185</div><div data-cm-point-field="location">Poway CA</div></div>
+                  <div role="listitem" class="w-dyn-item" data-cm-point="true"><div data-cm-point-field="id">ti-187</div><div data-cm-point-field="lat">44.574192</div><div data-cm-point-field="lng">-123.274023</div><div data-cm-point-field="location">Corvallis OR</div></div>
+                  <div role="listitem" class="w-dyn-item" data-cm-point="true"><div data-cm-point-field="id">ti-151</div><div data-cm-point-field="lat"></div><div data-cm-point-field="lng"></div><div data-cm-point-field="location"></div></div>
+                </div></div>
+            </div>
+          </div>
           <div role="listitem" class="w-dyn-item">
             <a class="project-card_link" href="/work/brentwood-vistas">
             <div class="project-card" data-cm-item="true">

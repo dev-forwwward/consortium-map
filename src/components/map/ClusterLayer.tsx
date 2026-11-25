@@ -7,6 +7,7 @@ import { locationAriaLabel } from '../../lib/mapUtils';
 import { MAX_CLUSTER_RADIUS } from '../../lib/constants';
 import { SELECT_EVENT } from '../../lib/cmsSource';
 import { createClusterIcon, createIndividualIcon } from './markerIcons';
+import { cardIdOf } from '../../types/location';
 
 // Cluster bubbles are re-created by the plugin on every zoom/spiderfy, so
 // they're tagged for accessibility via a DOM sweep rather than per-instance
@@ -40,7 +41,7 @@ export function ClusterLayer({ selectOnly = false }: { selectOnly?: boolean }) {
 
   const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
   const markerByIdRef = useRef<Map<string, L.Marker>>(new Map());
-  const hoverElRef = useRef<HTMLElement | null>(null);
+  const hoverElsRef = useRef<HTMLElement[]>([]);
 
   const tagClusters = useCallback(() => {
     tagClusterElements(map.getContainer());
@@ -94,7 +95,9 @@ export function ClusterLayer({ selectOnly = false }: { selectOnly?: boolean }) {
       const activate = () => {
         if (selectOnly) {
           selectLocation(location.id);
-          document.dispatchEvent(new CustomEvent(SELECT_EVENT, { detail: { id: location.id } }));
+          document.dispatchEvent(
+            new CustomEvent(SELECT_EVENT, { detail: { id: cardIdOf(location) } }),
+          );
         } else {
           selectLocation(location.id, { openDetail: true });
         }
@@ -147,27 +150,33 @@ export function ClusterLayer({ selectOnly = false }: { selectOnly?: boolean }) {
 
   // Hover highlighting is applied imperatively to whichever element is
   // currently on screen for the hovered location — the marker itself, or
-  // its parent cluster bubble — without panning/zooming the map.
+  // its parent cluster bubble — without panning/zooming the map. Hovering a
+  // card with several pins (a card id, not a pin id) highlights all of them.
   useEffect(() => {
     const clusterGroup = clusterGroupRef.current;
     if (!clusterGroup) return;
 
-    if (hoverElRef.current) {
-      hoverElRef.current.classList.remove('map-hover-highlight');
-      hoverElRef.current = null;
-    }
+    hoverElsRef.current.forEach((el) => el.classList.remove('map-hover-highlight'));
+    hoverElsRef.current = [];
 
     if (!hoveredLocationId) return;
-    const marker = markerByIdRef.current.get(hoveredLocationId);
-    if (!marker) return;
+    const single = markerByIdRef.current.get(hoveredLocationId);
+    const markers = single
+      ? [single]
+      : locations
+          .filter((location) => cardIdOf(location) === hoveredLocationId)
+          .map((location) => markerByIdRef.current.get(location.id))
+          .filter((marker): marker is L.Marker => marker != null);
 
-    const visibleLayer = clusterGroup.getVisibleParent(marker) ?? marker;
-    const el = visibleLayer.getElement?.();
-    if (el) {
-      el.classList.add('map-hover-highlight');
-      hoverElRef.current = el;
+    const els = new Set<HTMLElement>();
+    for (const marker of markers) {
+      const visibleLayer = clusterGroup.getVisibleParent(marker) ?? marker;
+      const el = visibleLayer.getElement?.();
+      if (el) els.add(el);
     }
-  }, [hoveredLocationId]);
+    els.forEach((el) => el.classList.add('map-hover-highlight'));
+    hoverElsRef.current = [...els];
+  }, [hoveredLocationId, locations]);
 
   return null;
 }

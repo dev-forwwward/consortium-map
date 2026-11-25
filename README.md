@@ -194,6 +194,28 @@ Webflow can bind CMS fields into an element's *text* but not into a regular Div'
 
 An item with a missing or invalid coordinate is left off the map and logged once as a `console.warn` that names it. The rest of the map is unaffected.
 
+### One card, many pins (Buildings)
+
+A project with several sites (Back Nine franchise locations) keeps **one** card in the list but gets one pin per site. The sites are the Works item's **Buildings** (multi-reference → Buildings collection), which has its own **Latitude** (`latitude`) and **Longitude** (`longitude`) Plain Text fields.
+
+Each Works Collection Item holds, next to the card's Link Block (Webflow won't put a Collection List inside a link), a hidden `.cm-data` div with `data-cm-points`, containing a nested Collection List bound to the item's Buildings. The embed reads points from the card's own `.w-dyn-item`, so they never leak into another card. Each nested item:
+
+| Element | Attribute | Bound to |
+|---|---|---|
+| Collection Item | `data-cm-point` | — |
+| child | `data-cm-point-field="id"` | Slug |
+| child | `data-cm-point-field="lat"` | Latitude |
+| child | `data-cm-point-field="lng"` | Longitude |
+| child | `data-cm-point-field="location"` | Location (`"Milford MI"` or `"Milford, MI"`) |
+
+`data-cm-point-field` is deliberately not `data-cm-field`, so the card's own `lat`/`id` lookups never pick up a building's value.
+
+- A card with at least one building that has valid coordinates gets one pin per such building (pin id `<card slug>::<building slug>`, `cardId` = card slug, name/category/image/url from the card, city/state from the building). Otherwise the card's own lat/lng is used, as before.
+- A building with both coordinates empty is silently left off; one with a bad value is skipped with a `console.warn`.
+- Hovering or selecting a building pin highlights the card. Hovering the card highlights all its pins. `cm:select` carries the card id.
+- A Webflow list shows at most 100 items, so the card holds a second nested list with the same markup starting at item 101.
+- The Back Nine coordinates were geocoded once from the client's spreadsheet (street address, or city centre where only a city was given). Editors can correct a pin in the Buildings item.
+
 ### How the list and map stay in sync
 
 `src/hooks/useLocations.ts` (`cms` source) watches the list with a `MutationObserver`. Whenever items are hidden (`display:none` / `hidden`), removed or added, it re-reads the visible ones, so the map always shows exactly what the filter shows. `src/hooks/useCmsBridge.ts` links the two directions:

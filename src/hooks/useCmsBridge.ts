@@ -8,14 +8,24 @@ import {
   findCmsList,
   getCmsItemId,
 } from '../lib/cmsSource';
+import { cardIdOf, type Location } from '../types/location';
 
 function itemFrom(target: EventTarget | null): HTMLElement | null {
   return target instanceof Element ? target.closest<HTMLElement>(ITEM_SELECTOR) : null;
 }
 
-function setExclusiveClass(className: string, id: string | null) {
+/**
+ * A pin id → the id of its card. A card with several pins (buildings) has
+ * pin ids of the form "<card>::<point>"; a card hover sets the card id itself.
+ */
+function cardIdFor(id: string, locations: Location[]): string {
+  const location = locations.find((l) => l.id === id);
+  return location ? cardIdOf(location) : id;
+}
+
+function setExclusiveClass(className: string, id: string | null, locations: Location[]) {
   document.querySelectorAll(`.${className}`).forEach((el) => el.classList.remove(className));
-  if (id) findCmsItem(id)?.classList.add(className);
+  if (id) findCmsItem(cardIdFor(id, locations))?.classList.add(className);
 }
 
 /**
@@ -61,10 +71,10 @@ export function useCmsBridge() {
   // `locations` is a dependency so classes are re-applied after the filter
   // re-renders items (Finsweet may swap in fresh nodes).
   useEffect(() => {
-    setExclusiveClass(HOVER_CLASS, hoveredLocationId);
+    setExclusiveClass(HOVER_CLASS, hoveredLocationId, locations);
   }, [hoveredLocationId, locations]);
 
   useEffect(() => {
-    setExclusiveClass(ACTIVE_CLASS, selectedLocationId);
+    setExclusiveClass(ACTIVE_CLASS, selectedLocationId, locations);
   }, [selectedLocationId, locations]);
 }

@@ -35,6 +35,20 @@ beforeAll(async () => {
 });
 
 describe('view-modes.css on desktop', () => {
+  it('Map View hides cards with no pin in view; Portfolio lists them all', () => {
+    const markup = (view: string) => `
+      <div class="map-explorer ${view}"><div class="map-explorer_items">
+        <div class="w-dyn-item is-cm-offmap"></div><div class="w-dyn-item"></div>
+      </div><p class="cm-offmap-empty">x</p></div>`;
+    document.body.innerHTML = markup('');
+    const [off, on] = document.querySelectorAll('.w-dyn-item');
+    expect(getComputedStyle(off).display).toBe('none');
+    expect(getComputedStyle(on).display).not.toBe('none');
+    document.body.innerHTML = markup('is-portfolio');
+    expect(getComputedStyle(document.querySelector('.is-cm-offmap')!).display).not.toBe('none');
+    expect(getComputedStyle(document.querySelector('.cm-offmap-empty')!).display).toBe('none');
+  });
+
   it('a faded-out explorer takes no clicks', () => {
     // Its cards are still links: a click on the invisible explorer would open a project.
     document.body.innerHTML = `<div class="map-explorer ${LEAVING_CLASS}"></div>`;

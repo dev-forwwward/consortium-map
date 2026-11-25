@@ -213,7 +213,7 @@ Each Works Collection Item holds, next to the card's Link Block (Webflow won't p
 - A card with at least one building that has valid coordinates gets one pin per such building (pin id `<card slug>::<building slug>`, `cardId` = card slug, name/category/image/url from the card, city/state from the building). Otherwise the card's own lat/lng is used, as before.
 - A building with both coordinates empty is silently left off; one with a bad value is skipped with a `console.warn`.
 - Hovering or selecting a building pin highlights the card. Hovering the card highlights all its pins. `cm:select` carries the card id.
-- A Webflow list shows at most 100 items, so the card holds a second nested list with the same markup starting at item 101.
+- A nested list shows at most 100 items and Webflow ignores a nested list's offset ("start at"), so the card holds two nested lists with the same markup: one sorted by Name A→Z, one Z→A. Together they cover up to 200 buildings; the embed drops the overlap by building slug. Past 200, this needs another approach (e.g. a top-level Buildings list with a back-reference to its project).
 - The Back Nine coordinates were geocoded once from the client's spreadsheet (street address, or city centre where only a city was given). Editors can correct a pin in the Buildings item.
 
 ### How the list and map stay in sync
@@ -223,7 +223,7 @@ Each Works Collection Item holds, next to the card's Link Block (Webflow won't p
 - Clicking a card opens the project page. Each card is wrapped in a Link Block bound to the Works Template page.
 - Hovering a marker adds `is-cm-hover` to the matching card. Clicking a marker selects it, adds `is-cm-active` to the card and dispatches `cm:select` (`detail: { id }`) on `document`. There is no detail modal in the embed.
 
-The embed no longer narrows the list to the map's viewport. The list follows the filter only.
+Outside Portfolio (desktop Map View and the mobile sheet), the list also follows the map: `src/components/map/CmsViewportFilter.tsx` puts `is-cm-offmap` on the Collection Item of every card with no pin inside the map's current view (checked on `moveend`/`zoomend`, raw lat/lng against `map.getBounds()`, so a pin folded into a cluster still counts), and `view-modes.css` hides those. A card with several pins stays while any of them is in view. `cmsSource` ignores the class, so the map keeps every filtered project's pins and zooming out brings the cards back. When no card is in view, a `.cm-offmap-empty` note ("No projects in this area. Zoom out to see more.") appears after the list. Portfolio hides the map, so it always lists every card.
 
 ### View modes
 

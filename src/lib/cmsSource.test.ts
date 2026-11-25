@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
-import { PAGED_CLASS, readCmsLocations, splitLocation } from './cmsSource';
+import { OFFMAP_CLASS, PAGED_CLASS, readCmsLocations, splitLocation } from './cmsSource';
 
 const card = (id: string, { className = '', attrs = '' } = {}) =>
   `<div class="w-dyn-item ${className}" ${attrs}><div data-cm-item data-cm-id="${id}" data-cm-lat="36" data-cm-lng="-86"></div></div>`;
@@ -19,6 +19,17 @@ describe('readCmsLocations', () => {
     // Guard: the paged card really is display:none, so the test exercises the exception.
     expect(getComputedStyle(list.children[1]).display).toBe('none');
     expect(readCmsLocations(list).map((l) => l.id)).toEqual(['shown', 'paged']);
+  });
+
+  it('keeps cards the map view narrowed out, unless a filter also hid them', () => {
+    document.body.innerHTML = `
+      <style>.${OFFMAP_CLASS} { display: none; }</style>
+      <div data-cm-list>
+        ${card('offmap', { className: OFFMAP_CLASS })}
+        ${card('offmap-filtered', { className: OFFMAP_CLASS, attrs: 'style="display: none"' })}
+      </div>`;
+    const list = document.querySelector<HTMLElement>('[data-cm-list]')!;
+    expect(readCmsLocations(list).map((l) => l.id)).toEqual(['offmap']);
   });
 });
 

@@ -63,6 +63,13 @@
 .project-card_link { display: block; color: inherit; text-decoration: none; }
 .project-card_tag-inline { display: none; }
 
+/* Map View (desktop) and the mobile sheet list only the cards with a pin inside the map's view
+   (src/components/map/CmsViewportFilter.tsx). Portfolio hides the map, so it lists everything.
+   The map still has the hidden cards' pins. */
+.map-explorer:not(.is-portfolio) .map-explorer_items > .is-cm-offmap { display: none; }
+.cm-offmap-empty { margin: 1.5rem 0 0; opacity: 0.6; }
+.map-explorer.is-portfolio .cm-offmap-empty { display: none; }
+
 /* Filter fade-in. Finsweet's list removes filtered-out items from the DOM and re-inserts every
    matching one on each render, and a CSS animation restarts on insertion, so this replays per
    filter change (and on page load). Not Finsweet's .is-list-starting hook: it drops that class

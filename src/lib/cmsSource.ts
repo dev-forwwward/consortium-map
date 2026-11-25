@@ -32,6 +32,14 @@ export const HOVER_CLASS = 'is-cm-hover';
 export const PAGED_CLASS = 'is-cm-paged';
 
 /**
+ * Set by the embed (CmsViewportFilter) on cards with no pin inside the map's
+ * current view. Map View CSS hides them so the list matches the map, but they
+ * are still in the filter's results: the map must keep their pins, or
+ * zooming out could never bring them back.
+ */
+export const OFFMAP_CLASS = 'is-cm-offmap';
+
+/**
  * Dispatched on `document` by the embed when a marker is clicked, with
  * `detail: { id }`. The page's view controller reveals and scrolls to the
  * matching card.
@@ -58,13 +66,19 @@ export function findCmsItem(id: string, root: ParentNode = document): HTMLElemen
  * An item counts as hidden only if it — or an ancestor inside the list — is
  * display:none / [hidden]. Deliberately not a getClientRects() check: on
  * mobile the whole list column may be toggled off while the map is showing,
- * and that must not empty the map. Nor does Show more's paging (PAGED_CLASS):
- * a paged-out card is display:none for the grid, not for the map.
+ * and that must not empty the map. Nor does Show more's paging (PAGED_CLASS)
+ * or the viewport narrowing (OFFMAP_CLASS): those cards are display:none for
+ * the list, not for the map.
  */
 function isFilteredOut(item: HTMLElement, list: HTMLElement): boolean {
   for (let node: HTMLElement | null = item; node && node !== list; node = node.parentElement) {
     if (node.hidden) return true;
-    if (node.classList.contains(PAGED_CLASS)) continue;
+    // Our own paging/viewport classes hide the card with CSS; only an inline
+    // display:none (a filter) counts on such a node.
+    if (node.classList.contains(PAGED_CLASS) || node.classList.contains(OFFMAP_CLASS)) {
+      if (node.style.display === 'none') return true;
+      continue;
+    }
     if (getComputedStyle(node).display === 'none') return true;
   }
   return false;
